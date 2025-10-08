@@ -1,0 +1,47 @@
+.terminal-bg {
+  background: #1e1e1e;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.terminal-window {
+  background: #222;
+  border-radius: 6px;
+  box-shadow: 0 0 24px #000a;
+  padding: 32px 40px;
+  min-width: 400px;
+  font-family: 'Fira Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  color: #e5e5e5;
+}
+
+.terminal-header {
+  color: #00ff00;
+  font-size: 1.2em;
+  margin-bottom: 24px;
+}
+
+.login-form {
+  margin-top: 8px;
+}
+
+.terminal-label {
+  color: #e5e5e5;
+  font-size: 1em;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.terminal-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #555;
+  color: #e5e5e5;
+  font-family: inherit;
+  font-size: 1em;
+  outline: none;
+  margin-left: 8px;
+  width: 180px;
+  padding: 2px 4px;
+}
