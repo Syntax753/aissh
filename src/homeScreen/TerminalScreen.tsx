@@ -62,7 +62,17 @@ export default function TerminalScreen() {
   const createInitialFs = (user: string) => {
     const root: FsNode = {
       home: {
-        [user]: {},
+        [user]: {
+          '.bashrc': {},
+          '.config': {},
+          '.mozilla': {},
+          '.ssh': {},
+          'Desktop': {},
+          'Documents': {},
+          'Music': {},
+          'Pictures': {},
+          'Videos': {},
+        },
       },
       tmp: {},
       etc: {},
@@ -134,7 +144,7 @@ export default function TerminalScreen() {
         "You are a linux administrator and know about the default Linux filesystem. " +
         "Your duty is to tell the user what files would typically be found in the folder they specify. " +
         "The files in the folders will depend on the type of person they are: " +
-        "- This person is a Youtube influence " +
+        "- This person is a Youtube influencer " +
         "- This person works during the evening " +
         "- This person doesn't eat meat " +
         "- This person is afraid of heights " +
