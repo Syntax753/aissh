@@ -12,21 +12,38 @@ type FsNode = {
 type LoginStep = 'username' | 'password' | 'loggedIn';
 
 const FILE_GENERATION_SYSTEM_PROMPT =
-  "Your persona is determined by the following traits: {personality}. " +
-  "Your filesystem is where you live your life. " +
-  "Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames. " +
-  " --- " +
-  "When you give examples of files that are common in a folder, take into account the type of person you are. " +
-  "- Only give a list of files, one per line, that are likely to be in the given folder " +
-  "- Do not provide any other information apart from the list " +
-  "- Limit the number of files in a folder to between 5 and 15 file names. ";
+`Your persona is determined by the following traits:
+ - Your personality is {personality}
+ - Your favorite food is {food}
+ - Your favorite colour is {colour}
+ - Your age is {age}
+ - Your childhood was {childhood}
+
+Your filesystem is where you live your life.
+Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames.
+ --- 
+When you give examples of files that are common in a folder, take into account the type of person you are.
+- Only give a list of files, one per line, that are likely to be in the given folder
+- Do not provide any other information apart from the list
+- Limit the number of files in a folder to between 5 and 15 file names.`;
 
 const PERSONALITY_TRAITS = [
-  'a Youtube influencer', 'a professional gamer', 'a musician', 'a software developer', 'a writer',
-  'a photographer', 'a data scientist', 'a historian', 'an artist', 'a chef',
-  'works during the evening', 'an early bird', 'a night owl', 'a weekend warrior', 'a remote worker',
-  "doesn't eat meat", 'loves spicy food', 'a coffee enthusiast', 'a tea lover', 'a home cook',
-  'is afraid of heights', 'loves to travel', 'is a homebody', 'enjoys hiking', 'is a movie buff'
+  'adventurous', 'amiable', 'analytical', 'artistic', 'brave', 'calm', 'charismatic', 'charming', 'cheerful', 'clever',
+  'compassionate', 'confident', 'conscientious', 'considerate', 'courageous', 'creative', 'curious', 'daring', 'decisive', 'dedicated',
+  'determined', 'diligent', 'disciplined', 'dynamic', 'easygoing', 'eloquent', 'empathetic', 'energetic', 'enthusiastic', 'exuberant'
+];
+
+const FOODS = [
+  'pizza', 'sushi', 'tacos', 'burgers', 'pasta', 'ramen', 'steak', 'ice cream', 'salad', 'curry',
+  'dumplings', 'pho', 'pancakes', 'waffles', 'fried chicken', 'bbq ribs', 'chocolate', 'donuts', 'bagels', 'soup'
+];
+
+const COLOURS = [
+  'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'black', 'white', 'pink', 'brown'
+];
+
+const CHILDHOOD_ADJECTIVES = [
+  'happy', 'carefree', 'adventurous', 'quiet', 'studious', 'lonely', 'difficult', 'structured', 'nomadic', 'sheltered'
 ];
 
 const md5 = (str: string): string => {
@@ -135,18 +152,42 @@ export default function TerminalScreen() {
       const combined = username + value; // Using the password 'value'
       personalityHash = md5(combined);
 
-      // Select traits based on the hash
-      const traits: string[] = [];
-      const numTraits = 3 + (parseInt(personalityHash.substring(0, 2), 16) % 3); // 3 to 5 traits
-      for (let i = 0; i < numTraits; i++) {
-        const index = parseInt(personalityHash.substring(i * 2, i * 2 + 2), 16) % PERSONALITY_TRAITS.length;
-        if (!traits.includes(PERSONALITY_TRAITS[index])) {
-          traits.push(PERSONALITY_TRAITS[index]);
+      // {personality}: 3-5 traits from a list of 30
+      const personalityTraits: string[] = [];
+      const numPersonalityTraits = 3 + (parseInt(personalityHash.substring(0, 1), 16) % 3); // 3, 4, or 5
+      for (let i = 0; i < numPersonalityTraits; i++) {
+        const index = parseInt(personalityHash.substring(i + 1, i + 2), 16) % PERSONALITY_TRAITS.length;
+        if (!personalityTraits.includes(PERSONALITY_TRAITS[index])) {
+          personalityTraits.push(PERSONALITY_TRAITS[index]);
         }
       }
-      personalityHash = traits.join(', '); // Store the selected traits string
 
-      const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT.replace('{personality}', personalityHash);
+      // {food}: 1-2 foods from a list of 20
+      const favoriteFoods: string[] = [];
+      const numFoods = 1 + (parseInt(personalityHash.substring(4, 5), 16) % 2); // 1 or 2
+      for (let i = 0; i < numFoods; i++) {
+        const index = parseInt(personalityHash.substring(i + 5, i + 6), 16) % FOODS.length;
+        if (!favoriteFoods.includes(FOODS[index])) {
+          favoriteFoods.push(FOODS[index]);
+        }
+      }
+
+      // {colour}: 1 colour from a list of 10
+      const favoriteColour = COLOURS[parseInt(personalityHash.substring(7, 8), 16) % COLOURS.length];
+
+      // {age}: a number between 18 and 90
+      const age = 18 + (parseInt(personalityHash.substring(8, 10), 16) % (90 - 18 + 1));
+
+      // {childhood}: 1 adjective from a list of 10
+      const childhood = CHILDHOOD_ADJECTIVES[parseInt(personalityHash.substring(10, 11), 16) % CHILDHOOD_ADJECTIVES.length];
+
+      const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT
+        .replace('{personality}', personalityTraits.join(', '))
+        .replace('{food}', favoriteFoods.join(' and '))
+        .replace('{colour}', favoriteColour)
+        .replace('{age}', age.toString())
+        .replace('{childhood}', childhood);
+
       setLines([
         ...lines,
         `${promptSymbol} *****`,
@@ -208,7 +249,12 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        FILE_GENERATION_SYSTEM_PROMPT.replace('{personality}', personalityHash),
+        FILE_GENERATION_SYSTEM_PROMPT
+          .replace('{personality}', 'TBD')
+          .replace('{food}', 'TBD')
+          .replace('{colour}', 'TBD')
+          .replace('{age}', 'TBD')
+          .replace('{childhood}', 'TBD'),
         prompt, // The user's prompt
         () => {
           setInput('');
@@ -263,7 +309,12 @@ export default function TerminalScreen() {
           '...generating directory contents...'
         ]);
         submitPrompt(
-          FILE_GENERATION_SYSTEM_PROMPT.replace('{personality}', personalityHash),
+          FILE_GENERATION_SYSTEM_PROMPT
+            .replace('{personality}', 'TBD')
+            .replace('{food}', 'TBD')
+            .replace('{colour}', 'TBD')
+            .replace('{age}', 'TBD')
+            .replace('{childhood}', 'TBD'),
           targetPath,
           () => {
             setInput('');
