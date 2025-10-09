@@ -4,6 +4,7 @@ import { init } from '@/homeScreen/interactions/initialization';
 import LoadScreen from '@/loadScreen/LoadScreen';
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
 
+let personalityHash = '';
 type FsNode = {
   [key: string]: FsNode;
 };
@@ -11,14 +12,34 @@ type FsNode = {
 type LoginStep = 'username' | 'password' | 'loggedIn';
 
 const FILE_GENERATION_SYSTEM_PROMPT =
-  "You are a a Youtube influencer, works during the evening, doesn't eat meat, and is afraid of heights. " +
+  "You are a linux administrator and your persona is determined by the following traits: {personality}. " +
   "Your filesystem is where you live your life. " +
   "Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames. " +
   " --- " +
   "When you give examples of files that are common in a folder, take into account the type of person you are. " +
   "- Only give a list of files, one per line, that are likely to be in the given folder " +
   "- Do not provide any other information apart from the list " +
-  "- Limit the number of files in a folder to between 5 and 15 file names ";
+  "- Limit the number of files in a folder to between 5 and 15 file names. ";
+
+const PERSONALITY_TRAITS = [
+  'a Youtube influencer', 'a professional gamer', 'a musician', 'a software developer', 'a writer',
+  'a photographer', 'a data scientist', 'a historian', 'an artist', 'a chef',
+  'works during the evening', 'an early bird', 'a night owl', 'a weekend warrior', 'a remote worker',
+  "doesn't eat meat", 'loves spicy food', 'a coffee enthusiast', 'a tea lover', 'a home cook',
+  'is afraid of heights', 'loves to travel', 'is a homebody', 'enjoys hiking', 'is a movie buff'
+];
+
+const md5 = (str: string): string => {
+  // A simple, non-cryptographic MD5-like hash for demonstration.
+  // For production, consider a robust library like crypto-js.
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
+};
 
 export default function TerminalScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -107,7 +128,28 @@ export default function TerminalScreen() {
       setCwd(`/home/${value}`);
     } else { // password step
       // Any password works for now
-      setLines([...lines, `${promptSymbol} *****`, 'Type "help" to see available commands.', '']);
+
+      // Generate and store the personality hash
+      const combined = username + value; // Using the password 'value'
+      personalityHash = md5(combined);
+
+      // Select traits based on the hash
+      const traits: string[] = [];
+      const numTraits = 3 + (parseInt(personalityHash.substring(0, 2), 16) % 3); // 3 to 5 traits
+      for (let i = 0; i < numTraits; i++) {
+        const index = parseInt(personalityHash.substring(i * 2, i * 2 + 2), 16) % PERSONALITY_TRAITS.length;
+        if (!traits.includes(PERSONALITY_TRAITS[index])) {
+          traits.push(PERSONALITY_TRAITS[index]);
+        }
+      }
+      personalityHash = traits.join(', '); // Store the selected traits string
+
+      const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT.replace('{personality}', personalityHash);
+      setLines([
+        ...lines,
+        `${promptSymbol} *****`,
+        `System prompt: ${finalPrompt}`,''
+      ]);
       setLoginStep('loggedIn');
     }
     setInput('');
@@ -161,7 +203,7 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        FILE_GENERATION_SYSTEM_PROMPT,
+        FILE_GENERATION_SYSTEM_PROMPT.replace('{personality}', personalityHash),
         prompt, // The user's prompt
         () => {
           setInput('');
@@ -215,7 +257,7 @@ export default function TerminalScreen() {
           '...generating directory contents...'
         ]);
         submitPrompt(
-          FILE_GENERATION_SYSTEM_PROMPT,
+          FILE_GENERATION_SYSTEM_PROMPT.replace('{personality}', personalityHash),
           targetPath,
           () => {
             setInput('');
