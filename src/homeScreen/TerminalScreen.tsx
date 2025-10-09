@@ -12,7 +12,7 @@ type FsNode = {
 type LoginStep = 'username' | 'password' | 'loggedIn';
 
 const FILE_GENERATION_SYSTEM_PROMPT =
-  "You are a linux administrator and your persona is determined by the following traits: {personality}. " +
+  "Your persona is determined by the following traits: {personality}. " +
   "Your filesystem is where you live your life. " +
   "Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames. " +
   " --- " +
