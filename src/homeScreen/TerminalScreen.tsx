@@ -171,23 +171,23 @@ export default function TerminalScreen() {
       }
 
       // {food}: 1-2 foods from a list of 20
-      const favoriteFoods: string[] = [];
+      const favoriteFoods: string[] = [FOODS[parseInt(personalityHash.substring(3, 4), 16) % FOODS.length]];
       const numFoods = 1 + (parseInt(personalityHash.substring(4, 5), 16) % 2); // 1 or 2
-      for (let i = 0; i < numFoods; i++) {
-        const index = parseInt(personalityHash.substring(i + 5, i + 6), 16) % FOODS.length;
-        if (!favoriteFoods.includes(FOODS[index])) {
-          favoriteFoods.push(FOODS[index]);
+      if (numFoods === 2) {
+        const secondFood = FOODS[parseInt(personalityHash.substring(5, 6), 16) % FOODS.length];
+        if (!favoriteFoods.includes(secondFood)) {
+          favoriteFoods.push(secondFood);
         }
       }
 
       // {colour}: 1 colour from a list of 10
-      const favoriteColour = COLOURS[parseInt(personalityHash.substring(7, 8), 16) % COLOURS.length];
+      const favoriteColour = COLOURS[parseInt(personalityHash.substring(6, 7), 16) % COLOURS.length];
 
       // {age}: a number between 18 and 90
-      const age = 18 + (parseInt(personalityHash.substring(8, 10), 16) % (90 - 18 + 1));
+      const age = 18 + (parseInt(personalityHash.substring(6, 8), 16) % (90 - 18 + 1));
 
       // {childhood}: 1 adjective from a list of 10
-      const childhood = CHILDHOOD_ADJECTIVES[parseInt(personalityHash.substring(10, 11), 16) % CHILDHOOD_ADJECTIVES.length];
+      const childhood = CHILDHOOD_ADJECTIVES[parseInt(personalityHash.substring(0, 1), 16) % CHILDHOOD_ADJECTIVES.length];
 
       const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT
         .replace('{personality}', personalityTraits.join(', '))
