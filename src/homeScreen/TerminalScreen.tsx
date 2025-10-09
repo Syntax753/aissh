@@ -229,6 +229,7 @@ export default function TerminalScreen() {
       output = [
         'Available commands:',
         'help        Show this help message',
+        'pwd         Print working directory',
         'ls          List directory contents',
         'clear       Clear the terminal',
         'cd <dir>    Change directory',
@@ -301,6 +302,8 @@ export default function TerminalScreen() {
       } else {
         output = `cd: no such file or directory: ${target}`;
       }
+    } else if (command === 'pwd') {
+      output = cwd;
     } else {
       output = `Command not found: ${command}`;
     }
