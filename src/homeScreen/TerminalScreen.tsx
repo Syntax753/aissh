@@ -133,7 +133,9 @@ export default function TerminalScreen() {
       },
       tmp: {},
       etc: {},
-      var: {},
+      var: {
+        'password.txt': {},
+      },
     };
     setFs(root);
   };
