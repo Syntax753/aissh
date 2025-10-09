@@ -22,11 +22,16 @@ const FILE_GENERATION_SYSTEM_PROMPT =
 
 Your filesystem is where you live your life.
 Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames.
- --- 
+--- 
 When you give examples of files that are common in a folder, take into account the type of person you are.
 - Only give a list of files, one per line, that are likely to be in the given folder
 - Do not provide any other information apart from the list
 - Limit the number of files in a folder to between 5 and 15 file names.`;
+
+const CAT_SYSTEM_PROMPT = 
+`Given the filename {filename}, generate content that the file might contain. Limit yourself to between 5-30 lines.
+`;
+
 
 const PERSONALITY_TRAITS = [
   'adventurous', 'amiable', 'analytical', 'artistic', 'brave', 'calm', 'charismatic', 'charming', 'cheerful', 'clever',
@@ -282,6 +287,7 @@ export default function TerminalScreen() {
         'clear       Clear the terminal',
         'cd <dir>    Change directory',
         'hello       Get a welcome message from the OS',
+        'cat <file>  Display file contents',
       ].join('\n');
     } else if (command.startsWith('ls')) {
       const parts = command.split(' ').filter(p => p);
@@ -352,6 +358,46 @@ export default function TerminalScreen() {
       }
     } else if (command === 'pwd') {
       output = cwd;
+    } else if (command.startsWith('cat ')) {
+      const filename = command.substring(4).trim();
+      if (!filename) {
+        output = 'cat: missing file operand';
+      } else {
+        const { node } = resolvePath(filename);
+        if (node) {
+          // It's a directory
+          if (Object.keys(node).length > 0) {
+            output = `cat: ${filename}: Is a directory`;
+          } else {
+            // For now, we treat empty objects as files.
+            setLines([
+              ...lines,
+              commandLine,
+              `...generating content for ${filename}...`
+            ]);
+            const systemPrompt = `${fullPersonaPrompt}\n\n---\n\n${
+              CAT_SYSTEM_PROMPT.replace('{filename}', filename)
+            }`;
+            submitPrompt(systemPrompt, filename, () => {
+              setInput('');
+              setIsLlmStreaming(true);
+            }, (response, isFinal) => {
+              setLines(prev => {
+                const newLines = [...prev];
+                newLines[newLines.length - 1] = response;
+                return newLines;
+              });
+              if (isFinal) {
+                setLlmResponse(response + '\n');
+                setIsLlmStreaming(false);
+              }
+            });
+            return;
+          }
+        } else {
+          output = `cat: ${filename}: No such file or directory`;
+        }
+      }
     } else {
       output = `Command not found: ${command}`;
     }
