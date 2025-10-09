@@ -19,6 +19,7 @@ export default function TerminalScreen() {
   const [input, setInput] = useState<string>('');
   const [cwd, setCwd] = useState<string>('/');
   const [llmResponse, setLlmResponse] = useState<string>('');
+  const [isLlmStreaming, setIsLlmStreaming] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
@@ -147,11 +148,16 @@ export default function TerminalScreen() {
         "This person is a Youtube influencer, works during the evening, doesn't eat meat, is afraid of heights " +
         " --- " +
         "When you give examples of files that are common in a folder, take into account the type of person they are. "+
-        "The filenames should match the personality of the user. Also include files that are typical in that folder on a linux system " +
-        "Only give a list of files, one per line, that are likely to be in the given folder. "+
-        "Do not provide any other information apart from the list.",
+        "- The filenames should match the personality of the user but also be based on typical filenames that would be found in the linux folder. " +
+        "- Only give a list of files, one per line, that are likely to be in the given folder. " +
+        "- Do not provide any other information apart from the list." +
+        "- Limit the number of files in a folder to 20 maximum.",
+
         prompt, // The user's prompt
-        () => setInput(''),
+        () => {
+          setInput('');
+          setIsLlmStreaming(true);
+        },
         (response: string, isFinal: boolean) => {
           setLines(prev => {
             const newLines = [...prev];
@@ -160,6 +166,7 @@ export default function TerminalScreen() {
           });
           if (isFinal) {
             setLlmResponse(response + '\n');
+            setIsLlmStreaming(false);
           }
         }
       );
@@ -178,27 +185,67 @@ export default function TerminalScreen() {
       ].join('\n');
     } else if (command.startsWith('ls')) {
       const parts = command.split(' ').filter(p => p);
-      let targetPath = cwd;
-
       const pathArg = parts.length > 1 ? parts[1] : null;
+      let targetPath = pathArg || cwd;
 
       if (pathArg) {
         if (pathArg === '..') {
           targetPath = cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/';
         } else {
-          const { node } = resolvePath(pathArg);
-          if (node) {
-            output = Object.keys(node).join('  ');
-          } else {
-            output = `ls: cannot access '${pathArg}': No such file or directory`;
-          }
+          const { node, fullPath } = resolvePath(pathArg);
+          targetPath = fullPath;
         }
       }
 
-      if (!output) { // For 'ls' without args, or 'ls ..'
-        const { node } = resolvePath(targetPath);
-        output = node ? Object.keys(node).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
+      const { node } = resolvePath(targetPath);
+
+      if (node && Object.keys(node).length === 0) {
+        setLines([
+          ...lines,
+          commandLine,
+          '...generating directory contents...'
+        ]);
+        submitPrompt(
+          "You are a linux administrator and know about the default Linux filesystem. " +
+          "Your duty is to tell the user what files would typically be found in the folder they specify. " +
+          "The files in the folders will depend on the type of person they are: " +
+          "This person is a Youtube influencer, works during the evening, doesn't eat meat, is afraid of heights " +
+          " --- " +
+          "When you give examples of files that are common in a folder, take into account the type of person they are. "+
+          "The filenames should match the personality of the user. Also include files that are typical in that folder on a linux system " +
+          "Only give a list of files, one per line, that are likely to be in the given folder. "+
+          "Do not provide any other information apart from the list.",
+          targetPath,
+          () => {
+            setInput('');
+            setIsLlmStreaming(true);
+          },
+          (response: string, isFinal: boolean) => {
+            setLines(prev => {
+              const newLines = [...prev];
+              newLines[newLines.length - 1] = response;
+              return newLines;
+            });
+            if (isFinal) {
+              setLlmResponse(response + '\n');
+              const newFiles = response.split('\n').filter(f => f.trim() !== '');
+              setFs(prevFs => {
+                if (!prevFs) return null;
+                const { node: targetNode } = resolvePath(targetPath);
+                if (targetNode) {
+                  newFiles.forEach(file => {
+                    targetNode[file] = {};
+                  });
+                }
+                return { ...prevFs };
+              });
+              setIsLlmStreaming(false);
+            }
+          }
+        );
+        return;
       }
+      output = node ? Object.keys(node).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
     } else if (command === 'clear') {
       setLines([]);
       setInput('');
@@ -238,6 +285,7 @@ export default function TerminalScreen() {
           <span className="terminal-prompt">{promptSymbol} </span>
           <input
             ref={inputRef}
+            disabled={isLlmStreaming}
             className="terminal-input"
             value={input}
             onChange={handleInput}
