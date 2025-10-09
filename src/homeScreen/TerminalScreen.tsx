@@ -41,12 +41,11 @@ export default function TerminalScreen() {
 
   useEffect(() => {
     if (llmResponse) {
-      setLines(prev => {
-        const newLines = [...prev];
-        newLines[newLines.length - 1] = llmResponse;
-        return newLines;
-      });
-      setLlmResponse('');
+      // When the full response is complete, we add it as a new line
+      // and prepare for the next command.
+      if (llmResponse.endsWith('\n')) {
+        setLlmResponse('');
+      }
     }
   }, [llmResponse]);
 
@@ -133,9 +132,18 @@ export default function TerminalScreen() {
       ]);
       submitPrompt(
         "You are a helpful OS and your duty is to answer the user",
-        prompt,
+        prompt, // The user's prompt
         () => setInput(''),
-        (response: string) => setLlmResponse(response)
+        (response: string, isFinal: boolean) => {
+          setLines(prev => {
+            const newLines = [...prev];
+            newLines[newLines.length - 1] = response;
+            return newLines;
+          });
+          if (isFinal) {
+            setLlmResponse(response + '\n');
+          }
+        }
       );
       return;
     }
