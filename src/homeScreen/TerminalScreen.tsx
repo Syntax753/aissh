@@ -430,6 +430,64 @@ export default function TerminalScreen() {
         setHistoryIndex(-1);
         setInput('');
       }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const parts = input.split(' ').filter(p => p);
+      const toComplete = parts[parts.length - 1] || '';
+
+      // Command completion
+      if (parts.length <= 1) {
+        const allCommands = ['hello', 'help', 'ls', 'clear', 'cd', 'pwd', 'cat'];
+        const matchingCommands = allCommands.filter(c => c.startsWith(toComplete));
+
+        if (matchingCommands.length === 1) {
+          setInput(matchingCommands[0] + ' ');
+        } else if (matchingCommands.length > 1) {
+          // Find common prefix for multiple command matches
+          let prefix = '';
+          for (let i = 0; i < matchingCommands[0].length; i++) {
+            const char = matchingCommands[0][i];
+            if (matchingCommands.every(cmd => cmd[i] === char)) {
+              prefix += char;
+            } else {
+              break;
+            }
+          }
+          setInput(prefix);
+        }
+      } else { // File/path completion
+        const lastPart = parts[parts.length - 1];
+        const pathPrefix = lastPart.substring(0, lastPart.lastIndexOf('/') + 1);
+        const partialName = lastPart.substring(lastPart.lastIndexOf('/') + 1);
+
+        const dirPath = pathPrefix ? resolvePath(pathPrefix).fullPath : cwd;
+        const { node: dirNode } = resolvePath(dirPath);
+
+        if (dirNode) {
+          const children = Object.keys(dirNode);
+          const matches = children.filter(child => child.startsWith(partialName));
+
+          if (matches.length === 1) {
+            const completion = pathPrefix + matches[0];
+            const newParts = [...parts.slice(0, -1), completion];
+            const { node: completedNode } = resolvePath(completion);
+            const isDirectory = completedNode && Object.keys(completedNode).length > 0;
+            setInput(newParts.join(' ') + (isDirectory ? '/' : ' '));
+          } else if (matches.length > 1) {
+            let prefix = '';
+            for (let i = 0; i < matches[0].length; i++) {
+              const char = matches[0][i];
+              if (matches.every(m => m[i] === char)) {
+                prefix += char;
+              } else {
+                break;
+              }
+            }
+            const completion = pathPrefix + prefix;
+            setInput([...parts.slice(0, -1), completion].join(' '));
+          }
+        }
+      }
     }
   };
 
