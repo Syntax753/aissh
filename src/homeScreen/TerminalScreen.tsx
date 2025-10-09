@@ -380,18 +380,32 @@ export default function TerminalScreen() {
             const systemPrompt = `${fullPersonaPrompt}\n\n---\n\n${
               CAT_SYSTEM_PROMPT.replace('{filename}', filename)
             }`;
+
+            const isJpg = filename.toLowerCase().endsWith('.jpg');
+
             submitPrompt(systemPrompt, filename, () => {
               setInput('');
               setIsLlmStreaming(true);
             }, (response, isFinal) => {
-              setLines(prev => {
-                const newLines = [...prev];
-                newLines[newLines.length - 1] = response;
-                return newLines;
-              });
               if (isFinal) {
-                setLlmResponse(response + '\n');
-                setIsLlmStreaming(false);
+                if (isJpg) {
+                  // Use an AI image generation service instead of Unsplash
+                  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(response.trim())}`;
+                  const imageElement = `<img src="${imageUrl}" alt="${response.trim()}" style="max-width: 300px; max-height: 300px;" />`;
+                  setLines(prev => {
+                    const newLines = [...prev];
+                    newLines[newLines.length - 1] = imageElement;
+                    return newLines;
+                  });
+                } else {
+                  setLines(prev => {
+                    const newLines = [...prev];
+                    newLines[newLines.length - 1] = response;
+                    return newLines;
+                  });
+                  setLlmResponse(response + '\n');
+                  setIsLlmStreaming(false);
+                }
               }
             });
             return;
@@ -494,7 +508,9 @@ export default function TerminalScreen() {
   return (
     <div className="terminal-bg" onClick={() => inputRef.current?.focus()}>
       <div className="terminal-window">
-        {lines.map((line, idx) => <div key={idx}>{line}</div>)}
+        {lines.map((line, idx) => (
+          <div key={idx} dangerouslySetInnerHTML={{ __html: line.startsWith('<img') ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
+        ))}
         <div ref={terminalEndRef} />
       </div>
       <div>
