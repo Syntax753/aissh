@@ -48,6 +48,8 @@ export default function TerminalScreen() {
     'Welcome to Santyx OS v0.1',
   ]);
   const [input, setInput] = useState<string>('');
+  const [commandHistory, setCommandHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [cwd, setCwd] = useState<string>('/');
   const [llmResponse, setLlmResponse] = useState<string>('');
   const [isLlmStreaming, setIsLlmStreaming] = useState<boolean>(false);
@@ -193,6 +195,9 @@ export default function TerminalScreen() {
     const command = input.trim();
     if (!command) return;
 
+    setCommandHistory(prev => [command, ...prev]);
+    setHistoryIndex(-1);
+
     const commandLine = `${promptSymbol} ${command}`;
 
     if (command.startsWith('hello')) {
@@ -316,6 +321,27 @@ export default function TerminalScreen() {
     setInput('');
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyIndex < commandHistory.length - 1) {
+        const newHistoryIndex = historyIndex + 1;
+        setHistoryIndex(newHistoryIndex);
+        setInput(commandHistory[newHistoryIndex]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        const newHistoryIndex = historyIndex - 1;
+        setHistoryIndex(newHistoryIndex);
+        setInput(commandHistory[newHistoryIndex]);
+      } else if (historyIndex <= 0) {
+        setHistoryIndex(-1);
+        setInput('');
+      }
+    }
+  };
+
   return (
     <div className="terminal-bg" onClick={() => inputRef.current?.focus()}>
       <div className="terminal-window">
@@ -331,6 +357,7 @@ export default function TerminalScreen() {
             className="terminal-input"
             value={input}
             onChange={handleInput}
+            onKeyDown={handleKeyDown}
             type={loginStep === 'password' ? 'password' : 'text'}
             autoFocus
           />
