@@ -106,20 +106,29 @@ export default function TerminalScreen() {
   const resolvePath = (path: string): { node: FsNode | null, fullPath: string } => {
     if (!fs) return { node: null, fullPath: '' };
 
-    const fullPath = path.startsWith('/') ? path : (cwd === '/' ? `/${path}` : `${cwd}/${path}`);
-    const parts = fullPath.split('/').filter(p => p);
+    const initialPath = path.startsWith('/') ? path : (cwd === '/' ? `/${path}` : `${cwd}/${path}`);
+    const parts = initialPath.split('/').filter(p => p);
 
-    let currentNode: FsNode | null = fs;
+    const resolvedParts: string[] = [];
     for (const part of parts) {
-      if (currentNode && currentNode[part]) {
-        currentNode = currentNode[part];
-      } else {
-        return { node: null, fullPath };
+      if (part === '..') {
+        resolvedParts.pop();
+      } else if (part !== '.') {
+        resolvedParts.push(part);
       }
     }
 
-    // Handle resolving to root '/'
-    return { node: currentNode, fullPath: fullPath === '' ? '/' : fullPath };
+    let currentNode: FsNode | null = fs;
+    for (const part of resolvedParts) {
+      if (currentNode && currentNode[part]) {
+        currentNode = currentNode[part];
+      } else {
+        return { node: null, fullPath: '/' + resolvedParts.join('/') };
+      }
+    }
+
+    const finalPath = '/' + resolvedParts.join('/');
+    return { node: currentNode, fullPath: finalPath === '' ? '/' : finalPath };
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -150,8 +159,9 @@ export default function TerminalScreen() {
         "When you give examples of files that are common in a folder, take into account the type of person they are. "+
         "- The filenames should match the personality of the user but also be based on typical filenames that would be found in the linux folder. " +
         "- Only give a list of files, one per line, that are likely to be in the given folder. " +
-        "- Do not provide any other information apart from the list." +
-        "- Limit the number of files in a folder to 20 maximum.",
+        "- Do not provide any other information apart from the list. " +
+        "- Limit the number of files in a folder to 20 maximum. " +
+        "- Avoid more than 3 filenames in a row with the same base name and a number on the end of it - we want variety in the names. ",
 
         prompt, // The user's prompt
         () => {
@@ -252,15 +262,11 @@ export default function TerminalScreen() {
       return;
     } else if (command.startsWith('cd ')) {
       const target = command.slice(3).trim();
-      if (target === '..') {
-        setCwd(cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/');
+      const { node, fullPath } = resolvePath(target);
+      if (node) {
+        setCwd(fullPath);
       } else {
-        const { node, fullPath } = resolvePath(target);
-        if (node) {
-          setCwd(fullPath);
-        } else {
-          output = `cd: no such file or directory: ${target}`;
-        }
+        output = `cd: no such file or directory: ${target}`;
       }
     } else {
       output = `Command not found: ${command}`;
