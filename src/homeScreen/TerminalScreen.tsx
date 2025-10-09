@@ -10,6 +10,16 @@ type FsNode = {
 
 type LoginStep = 'username' | 'password' | 'loggedIn';
 
+const FILE_GENERATION_SYSTEM_PROMPT =
+  "You are a linux administrator and a Youtube influencer, works during the evening, doesn't eat meat, is afraid of heights. " +
+  "Your filesystem is where you live your life. " +
+  "Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames. " +
+  " --- " +
+  "When you give examples of files that are common in a folder, take into account the type of person you are. " +
+  "- Only give a list of files, one per line, that are likely to be in the given folder " +
+  "- Do not provide any other information apart from the list " +
+  "- Limit the number of files in a folder to between 5 and 15 file names ";
+
 export default function TerminalScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [fs, setFs] = useState<FsNode | null>(null);
@@ -151,15 +161,7 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        "You are a linux administrator and a Youtube influencer, works during the evening, doesn't eat meat, is afraid of heights. " +
-        "Your filesystem is where you live your life. " +
-        "Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames. " +
-        " --- " +
-        "When you give examples of files that are common in a folder, take into account the type of person you are. "+
-        "- Only give a list of files, one per line, that are likely to be in the given folder " +
-        "- Do not provide any other information apart from the list " +
-        "- Limit the number of files in a folder to between 5 and 15 file names ",
-
+        FILE_GENERATION_SYSTEM_PROMPT,
         prompt, // The user's prompt
         () => {
           setInput('');
@@ -213,15 +215,7 @@ export default function TerminalScreen() {
           '...generating directory contents...'
         ]);
         submitPrompt(
-          "You are a linux administrator and know about the default Linux filesystem. " +
-          "Your duty is to tell the user what files would typically be found in the folder they specify. " +
-          "The files in the folders will depend on the type of person they are: " +
-          "This person is a Youtube influencer, works during the evening, doesn't eat meat, is afraid of heights " +
-          " --- " +
-          "When you give examples of files that are common in a folder, take into account the type of person they are. "+
-          "The filenames should match the personality of the user. Also include files that are typical in that folder on a linux system " +
-          "Only give a list of files, one per line, that are likely to be in the given folder. "+
-          "Do not provide any other information apart from the list.",
+          FILE_GENERATION_SYSTEM_PROMPT,
           targetPath,
           () => {
             setInput('');
