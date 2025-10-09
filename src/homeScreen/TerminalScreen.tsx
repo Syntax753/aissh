@@ -5,7 +5,6 @@ import LoadScreen from '@/loadScreen/LoadScreen';
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
 
 let personalityHash = '';
-let fullPersonaPrompt = '';
 type FsNode = {
   [key: string]: FsNode;
 };
@@ -15,6 +14,7 @@ type LoginStep = 'username' | 'password' | 'loggedIn';
 const FILE_GENERATION_SYSTEM_PROMPT =
 `Your persona is determined by the following traits:
  - Your personality is {personality}
+ - Your job is {job}
  - Your favorite food is {food}
  - Your favorite colour is {colour}
  - Your age is {age}
@@ -22,21 +22,26 @@ const FILE_GENERATION_SYSTEM_PROMPT =
 
 Your filesystem is where you live your life.
 Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames.
---- 
+ --- 
 When you give examples of files that are common in a folder, take into account the type of person you are.
 - Only give a list of files, one per line, that are likely to be in the given folder
 - Do not provide any other information apart from the list
 - Limit the number of files in a folder to between 5 and 15 file names.`;
 
-const CAT_SYSTEM_PROMPT = 
-`Given the filename {filename}, generate content that the file might contain. Limit yourself to between 5-30 lines.
-`;
+const CAT_SYSTEM_PROMPT = `Given the filename {filename}, generate content that the file might contain. Limit yourself to between 5-30 lines.`;
 
+let fullPersonaPrompt = '';
 
 const PERSONALITY_TRAITS = [
   'adventurous', 'amiable', 'analytical', 'artistic', 'brave', 'calm', 'charismatic', 'charming', 'cheerful', 'clever',
   'compassionate', 'confident', 'conscientious', 'considerate', 'courageous', 'creative', 'curious', 'daring', 'decisive', 'dedicated',
   'determined', 'diligent', 'disciplined', 'dynamic', 'easygoing', 'eloquent', 'empathetic', 'energetic', 'enthusiastic', 'exuberant'
+];
+
+const JOBS = [
+  'software developer', 'artist', 'writer', 'musician', 'chef', 'photographer', 'streamer', 'historian', 'scientist', 'teacher',
+  'doctor', 'lawyer', 'architect', 'engineer', 'designer', 'accountant', 'consultant', 'entrepreneur', 'journalist', 'mechanic',
+  'plumber', 'electrician', 'carpenter', 'farmer', 'veterinarian', 'police officer', 'firefighter', 'paramedic', 'pilot', 'sailor'
 ];
 
 const FOODS = [
@@ -189,10 +194,14 @@ export default function TerminalScreen() {
       // {childhood}: 1 adjective from a list of 10
       const childhood = CHILDHOOD_ADJECTIVES[parseInt(personalityHash.substring(0, 1), 16) % CHILDHOOD_ADJECTIVES.length];
 
+      // {job}: 1 job from a list of 30
+      const job = JOBS[parseInt(personalityHash.substring(2, 4), 16) % JOBS.length];
+
       const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT
         .replace('{personality}', personalityTraits.join(', '))
         .replace('{food}', favoriteFoods.join(' and '))
         .replace('{colour}', favoriteColour)
+        .replace('{job}', job)
         .replace('{age}', age.toString())
         .replace('{childhood}', childhood);
 
@@ -258,7 +267,13 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        fullPersonaPrompt,
+        FILE_GENERATION_SYSTEM_PROMPT
+          .replace('{personality}', 'TBD')
+          .replace('{job}', 'TBD')
+          .replace('{food}', 'TBD')
+          .replace('{colour}', 'TBD')
+          .replace('{age}', 'TBD')
+          .replace('{childhood}', 'TBD'),
         prompt, // The user's prompt
         () => {
           setInput('');
@@ -314,7 +329,13 @@ export default function TerminalScreen() {
           '...generating directory contents...'
         ]);
         submitPrompt(
-          fullPersonaPrompt,
+          FILE_GENERATION_SYSTEM_PROMPT
+            .replace('{personality}', 'TBD')
+            .replace('{job}', 'TBD')
+            .replace('{food}', 'TBD')
+            .replace('{colour}', 'TBD')
+            .replace('{age}', 'TBD')
+            .replace('{childhood}', 'TBD'),
           targetPath,
           () => {
             setInput('');
@@ -377,24 +398,20 @@ export default function TerminalScreen() {
               commandLine,
               `...generating content for ${filename}...`
             ]);
-            const systemPrompt = `${fullPersonaPrompt}\n\n---\n\n${
-              CAT_SYSTEM_PROMPT.replace('{filename}', filename)
-            }`;
-
+            const systemPrompt = `${fullPersonaPrompt}\n\n---\n\n${CAT_SYSTEM_PROMPT.replace('{filename}', filename)}`;
             const isJpg = filename.toLowerCase().endsWith('.jpg');
-
             submitPrompt(systemPrompt, filename, () => {
               setInput('');
               setIsLlmStreaming(true);
             }, (response, isFinal) => {
               if (isFinal) {
                 if (isJpg) {
-                  // Use an AI image generation service instead of Unsplash
-                  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(response.trim())}`;
-                  const imageElement = `<img src="${imageUrl}" alt="${response.trim()}" style="max-width: 300px; max-height: 300px;" />`;
+                  const imageDescription = response.trim();
+                  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imageDescription)}`;
+                  const imageElement = `<br/><img src="${imageUrl}" alt="${imageDescription}" style="max-width: 300px; max-height: 300px;" />`;
                   setLines(prev => {
                     const newLines = [...prev];
-                    newLines[newLines.length - 1] = imageElement;
+                    newLines[newLines.length - 1] = imageDescription + imageElement;
                     return newLines;
                   });
                 } else {
@@ -403,9 +420,8 @@ export default function TerminalScreen() {
                     newLines[newLines.length - 1] = response;
                     return newLines;
                   });
-                  setLlmResponse(response + '\n');
-                  setIsLlmStreaming(false);
                 }
+                setIsLlmStreaming(false);
               }
             });
             return;
@@ -444,64 +460,6 @@ export default function TerminalScreen() {
         setHistoryIndex(-1);
         setInput('');
       }
-    } else if (e.key === 'Tab') {
-      e.preventDefault();
-      const parts = input.split(' ').filter(p => p);
-      const toComplete = parts[parts.length - 1] || '';
-
-      // Command completion
-      if (parts.length <= 1) {
-        const allCommands = ['hello', 'help', 'ls', 'clear', 'cd', 'pwd', 'cat'];
-        const matchingCommands = allCommands.filter(c => c.startsWith(toComplete));
-
-        if (matchingCommands.length === 1) {
-          setInput(matchingCommands[0] + ' ');
-        } else if (matchingCommands.length > 1) {
-          // Find common prefix for multiple command matches
-          let prefix = '';
-          for (let i = 0; i < matchingCommands[0].length; i++) {
-            const char = matchingCommands[0][i];
-            if (matchingCommands.every(cmd => cmd[i] === char)) {
-              prefix += char;
-            } else {
-              break;
-            }
-          }
-          setInput(prefix);
-        }
-      } else { // File/path completion
-        const lastPart = parts[parts.length - 1];
-        const pathPrefix = lastPart.substring(0, lastPart.lastIndexOf('/') + 1);
-        const partialName = lastPart.substring(lastPart.lastIndexOf('/') + 1);
-
-        const dirPath = pathPrefix ? resolvePath(pathPrefix).fullPath : cwd;
-        const { node: dirNode } = resolvePath(dirPath);
-
-        if (dirNode) {
-          const children = Object.keys(dirNode);
-          const matches = children.filter(child => child.startsWith(partialName));
-
-          if (matches.length === 1) {
-            const completion = pathPrefix + matches[0];
-            const newParts = [...parts.slice(0, -1), completion];
-            const { node: completedNode } = resolvePath(completion);
-            const isDirectory = completedNode && Object.keys(completedNode).length > 0;
-            setInput(newParts.join(' ') + (isDirectory ? '/' : ' '));
-          } else if (matches.length > 1) {
-            let prefix = '';
-            for (let i = 0; i < matches[0].length; i++) {
-              const char = matches[0][i];
-              if (matches.every(m => m[i] === char)) {
-                prefix += char;
-              } else {
-                break;
-              }
-            }
-            const completion = pathPrefix + prefix;
-            setInput([...parts.slice(0, -1), completion].join(' '));
-          }
-        }
-      }
     }
   };
 
@@ -509,7 +467,7 @@ export default function TerminalScreen() {
     <div className="terminal-bg" onClick={() => inputRef.current?.focus()}>
       <div className="terminal-window">
         {lines.map((line, idx) => (
-          <div key={idx} dangerouslySetInnerHTML={{ __html: line.startsWith('<img') ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
+          <div key={idx} dangerouslySetInnerHTML={{ __html: line.includes('<img') ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
         ))}
         <div ref={terminalEndRef} />
       </div>
