@@ -58,9 +58,9 @@ export async function webLlmGenerate(connection:LLMConnection, llmMessages:LLMMe
     stream: true,
     seed: 0,
     messages,
-    temperature: 0.2
+    temperature: 0.0
   };
-  addUserMessageToChatHistory(llmMessages, prompt);
+  // addUserMessageToChatHistory(llmMessages, prompt);
   
   const asyncChunkGenerator = await engine.chat.completions.create(request);
   let messageText = '';
@@ -73,6 +73,6 @@ export async function webLlmGenerate(connection:LLMConnection, llmMessages:LLMMe
   messageText = await engine.getMessage();
   
   onStatusUpdate(messageText, 1);
-  addAssistantMessageToChatHistory(llmMessages, messageText);
+  // addAssistantMessageToChatHistory(llmMessages, messageText);
   return messageText;
 }

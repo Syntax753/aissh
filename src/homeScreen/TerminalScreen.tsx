@@ -131,7 +131,7 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        "You are a helpful OS and your duty is to answer the user",
+        "You are a linux administrator and know about the default Linux filesystem. Your duty is to tell the user what files would typically be found in the folder they specify",
         prompt, // The user's prompt
         () => setInput(''),
         (response: string, isFinal: boolean) => {
