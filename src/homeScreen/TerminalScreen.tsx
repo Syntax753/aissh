@@ -144,15 +144,12 @@ export default function TerminalScreen() {
         "You are a linux administrator and know about the default Linux filesystem. " +
         "Your duty is to tell the user what files would typically be found in the folder they specify. " +
         "The files in the folders will depend on the type of person they are: " +
-        "- This person is a Youtube influencer " +
-        "- This person works during the evening " +
-        "- This person doesn't eat meat " +
-        "- This person is afraid of heights " +
+        "This person is a Youtube influencer, works during the evening, doesn't eat meat, is afraid of heights " +
         " --- " +
         "When you give examples of files that are common in a folder, take into account the type of person they are. "+
-        "The filenames should match the personality of the user. " +
-        "Only give a bullet point list of files that are likely to be in the given folder. "+
-        "Do not provide any explanations.",
+        "The filenames should match the personality of the user. Also include files that are typical in that folder on a linux system " +
+        "Only give a list of files, one per line, that are likely to be in the given folder. "+
+        "Do not provide any other information apart from the list.",
         prompt, // The user's prompt
         () => setInput(''),
         (response: string, isFinal: boolean) => {

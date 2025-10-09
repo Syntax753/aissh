@@ -14,7 +14,7 @@
   flex-grow: 1;
   overflow-y: auto;
   white-space: pre-wrap;
-  font-size: 0.9em;
+  font-size: 1em;
 }
 
 .terminal-input {
