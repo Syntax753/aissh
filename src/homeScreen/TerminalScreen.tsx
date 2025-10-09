@@ -5,6 +5,7 @@ import LoadScreen from '@/loadScreen/LoadScreen';
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
 
 let personalityHash = '';
+let fullPersonaPrompt = '';
 type FsNode = {
   [key: string]: FsNode;
 };
@@ -188,6 +189,7 @@ export default function TerminalScreen() {
         .replace('{age}', age.toString())
         .replace('{childhood}', childhood);
 
+      fullPersonaPrompt = finalPrompt;
       setLines([
         ...lines,
         `${promptSymbol} *****`,
@@ -249,12 +251,7 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        FILE_GENERATION_SYSTEM_PROMPT
-          .replace('{personality}', 'TBD')
-          .replace('{food}', 'TBD')
-          .replace('{colour}', 'TBD')
-          .replace('{age}', 'TBD')
-          .replace('{childhood}', 'TBD'),
+        fullPersonaPrompt,
         prompt, // The user's prompt
         () => {
           setInput('');
@@ -309,12 +306,7 @@ export default function TerminalScreen() {
           '...generating directory contents...'
         ]);
         submitPrompt(
-          FILE_GENERATION_SYSTEM_PROMPT
-            .replace('{personality}', 'TBD')
-            .replace('{food}', 'TBD')
-            .replace('{colour}', 'TBD')
-            .replace('{age}', 'TBD')
-            .replace('{childhood}', 'TBD'),
+          fullPersonaPrompt,
           targetPath,
           () => {
             setInput('');

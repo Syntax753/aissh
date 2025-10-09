@@ -19,6 +19,9 @@ export async function submitPrompt(
     onStart();
     try {
       
+      console.log("System Prompt:", systemPrompt);
+      console.log("Prompt:", prompt);
+
       if (!isLlmConnected()) { 
         const message = isServingLocally() 
         ? `LLM is not connected. You're in a dev environment where this is expected (hot reloads, canceling the LLM load). You can refresh the page to load the LLM.`
