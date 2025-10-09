@@ -124,14 +124,16 @@ export default function TerminalScreen() {
 
     const commandLine = `${promptSymbol} ${command}`;
 
-    if (command === 'hello') {
+    if (command.startsWith('hello')) {
+      const prompt = command.substring('hello'.length).trim();
       setLines([
         ...lines,
         commandLine,
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        "You are an OS. You should respond with a welcome message when addressed",
+        "You are a helpful OS and your duty is to answer the user",
+        prompt,
         () => setInput(''),
         (response: string) => setLlmResponse(response)
       );
