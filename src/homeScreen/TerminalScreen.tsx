@@ -4,24 +4,20 @@ import { init } from '@/homeScreen/interactions/initialization';
 import LoadScreen from '@/loadScreen/LoadScreen';
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
 
-const initialFS: { [key: string]: string[] } = {
-  '/': ['home', 'tmp', 'etc', 'var'],
-  '/home': ['user'],
-  '/tmp': [],
-  '/etc': [],
-  '/var': [],
-  '/home/user': [],
+type FsNode = {
+  [key: string]: FsNode;
 };
 
 type LoginStep = 'username' | 'password' | 'loggedIn';
 
 export default function TerminalScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [fs, setFs] = useState<FsNode | null>(null);
   const [lines, setLines] = useState<string[]>([
     'Welcome to Santyx OS v0.1',
   ]);
   const [input, setInput] = useState<string>('');
-  const [cwd, setCwd] = useState<string>('/home/user');
+  const [cwd, setCwd] = useState<string>('/');
   const [llmResponse, setLlmResponse] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
@@ -64,15 +60,31 @@ export default function TerminalScreen() {
     setInput(e.target.value);
   };
 
+  const createInitialFs = (user: string) => {
+    const root: FsNode = {
+      home: {
+        [user]: {},
+      },
+      tmp: {},
+      etc: {},
+      var: {},
+    };
+    setFs(root);
+  };
+
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const value = input.trim();
     if (!value) return;
 
     if (loginStep === 'username') {
+      // Create the FS first, so username is available for cwd
+      createInitialFs(value);
       setUsername(value);
       setLines([...lines, `${promptSymbol} ${value}`]);
       setLoginStep('password');
+      // We set cwd here so the prompt in the password step shows the future path
+      setCwd(`/home/${value}`);
     } else { // password step
       // Any password works for now
       setLines([...lines, `${promptSymbol} *****`, 'Type "help" to see available commands.']);
@@ -117,25 +129,58 @@ export default function TerminalScreen() {
         'cd <dir>    Change directory',
         'hello       Get a welcome message from the OS',
       ].join('\n');
-    } else if (command === 'ls') {
-      output = initialFS[cwd]?.join('  ') || '';
+    } else if (command.startsWith('ls')) {
+      const parts = command.split(' ').filter(p => p);
+      let targetPath = cwd;
+
+      if (parts.length > 1) {
+        if (parts[1] === '..') {
+          targetPath = cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/';
+        } else {
+          output = `ls: cannot access '${parts[1]}': No such file or directory`;
+        }
+      }
+
+      if (!output && fs) { // Ensure fs is not null
+        const pathParts = targetPath.split('/').filter(p => p);
+        let currentNode: FsNode | null = fs;
+        for (const part of pathParts) {
+          if (currentNode && currentNode[part]) {
+            currentNode = currentNode[part];
+          } else {
+            currentNode = null;
+            break;
+          }
+        }
+        output = currentNode ? Object.keys(currentNode).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
+      }
     } else if (command === 'clear') {
       setLines([]);
       setInput('');
       return;
     } else if (command.startsWith('cd ')) {
       const target = command.slice(3).trim();
-      let newPath = '';
+      let newPath = cwd;
       if (target === '..') {
-        if (cwd === '/') {
-          newPath = '/';
-        } else {
-          newPath = cwd.substring(0, cwd.lastIndexOf('/')) || '/';
+        newPath = cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/';
+      } else if (fs) { // Ensure fs is not null
+        const tempPath = target.startsWith('/') ? target : (cwd === '/' ? `/${target}` : `${cwd}/${target}`);
+        const pathParts = tempPath.split('/').filter(p => p);
+        let currentNode: FsNode | null = fs;
+        let isValid = true;
+        for (const part of pathParts) {
+          if (currentNode && currentNode[part]) {
+            currentNode = currentNode[part];
+          } else {
+            isValid = false;
+            break;
+          }
         }
-      } else if (target.startsWith('/')) {
-        newPath = initialFS[target] ? target : cwd;
-      } else {
-        newPath = initialFS[`${cwd}/${target}`] ? `${cwd}/${target}` : cwd;
+        if (isValid) {
+          newPath = tempPath === '' ? '/' : tempPath;
+        } else {
+          output = `cd: no such file or directory: ${target}`;
+        }
       }
       setCwd(newPath);
       output = '';
