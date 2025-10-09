@@ -1,5 +1,5 @@
 .terminal-bg {
-  background-color: #000;
+  background-color: rgb(30, 25, 25);;
   color: #ccc;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
   width: 100%;
@@ -24,7 +24,7 @@
   font-family: inherit;
   font-size: inherit;
   outline: none;
-  width: 70%;
+  width: 100%;
 }
 
 .terminal-prompt {

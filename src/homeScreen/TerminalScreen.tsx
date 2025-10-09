@@ -87,10 +87,29 @@ export default function TerminalScreen() {
       setCwd(`/home/${value}`);
     } else { // password step
       // Any password works for now
-      setLines([...lines, `${promptSymbol} *****`, 'Type "help" to see available commands.']);
+      setLines([...lines, `${promptSymbol} *****`, 'Type "help" to see available commands.', '']);
       setLoginStep('loggedIn');
     }
     setInput('');
+  };
+
+  const resolvePath = (path: string): { node: FsNode | null, fullPath: string } => {
+    if (!fs) return { node: null, fullPath: '' };
+
+    const fullPath = path.startsWith('/') ? path : (cwd === '/' ? `/${path}` : `${cwd}/${path}`);
+    const parts = fullPath.split('/').filter(p => p);
+
+    let currentNode: FsNode | null = fs;
+    for (const part of parts) {
+      if (currentNode && currentNode[part]) {
+        currentNode = currentNode[part];
+      } else {
+        return { node: null, fullPath };
+      }
+    }
+
+    // Handle resolving to root '/'
+    return { node: currentNode, fullPath: fullPath === '' ? '/' : fullPath };
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -133,26 +152,24 @@ export default function TerminalScreen() {
       const parts = command.split(' ').filter(p => p);
       let targetPath = cwd;
 
-      if (parts.length > 1) {
-        if (parts[1] === '..') {
+      const pathArg = parts.length > 1 ? parts[1] : null;
+
+      if (pathArg) {
+        if (pathArg === '..') {
           targetPath = cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/';
         } else {
-          output = `ls: cannot access '${parts[1]}': No such file or directory`;
+          const { node } = resolvePath(pathArg);
+          if (node) {
+            output = Object.keys(node).join('  ');
+          } else {
+            output = `ls: cannot access '${pathArg}': No such file or directory`;
+          }
         }
       }
 
-      if (!output && fs) { // Ensure fs is not null
-        const pathParts = targetPath.split('/').filter(p => p);
-        let currentNode: FsNode | null = fs;
-        for (const part of pathParts) {
-          if (currentNode && currentNode[part]) {
-            currentNode = currentNode[part];
-          } else {
-            currentNode = null;
-            break;
-          }
-        }
-        output = currentNode ? Object.keys(currentNode).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
+      if (!output) { // For 'ls' without args, or 'ls ..'
+        const { node } = resolvePath(targetPath);
+        output = node ? Object.keys(node).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
       }
     } else if (command === 'clear') {
       setLines([]);
@@ -160,30 +177,16 @@ export default function TerminalScreen() {
       return;
     } else if (command.startsWith('cd ')) {
       const target = command.slice(3).trim();
-      let newPath = cwd;
       if (target === '..') {
-        newPath = cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/';
-      } else if (fs) { // Ensure fs is not null
-        const tempPath = target.startsWith('/') ? target : (cwd === '/' ? `/${target}` : `${cwd}/${target}`);
-        const pathParts = tempPath.split('/').filter(p => p);
-        let currentNode: FsNode | null = fs;
-        let isValid = true;
-        for (const part of pathParts) {
-          if (currentNode && currentNode[part]) {
-            currentNode = currentNode[part];
-          } else {
-            isValid = false;
-            break;
-          }
-        }
-        if (isValid) {
-          newPath = tempPath === '' ? '/' : tempPath;
+        setCwd(cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/');
+      } else {
+        const { node, fullPath } = resolvePath(target);
+        if (node) {
+          setCwd(fullPath);
         } else {
           output = `cd: no such file or directory: ${target}`;
         }
       }
-      setCwd(newPath);
-      output = '';
     } else {
       output = `Command not found: ${command}`;
     }
