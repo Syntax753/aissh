@@ -25,7 +25,7 @@ export default function TerminalScreen() {
   const [loginStep, setLoginStep] = useState<LoginStep>('username');
   const [username, setUsername] = useState<string>('');
 
-  const promptSymbol = loginStep === 'loggedIn' ? `$ ${username}@santyx:${cwd}$` : loginStep === 'username' ? 'Username:' : 'Password:';
+  const promptSymbol = loginStep === 'loggedIn' ? `${username}@santyx : ${cwd}$` : loginStep === 'username' ? 'Username:' : 'Password:';
 
   useEffect(() => {
     init().then(isLlmConnected => {
@@ -131,7 +131,18 @@ export default function TerminalScreen() {
         '...waiting for OS response...'
       ]);
       submitPrompt(
-        "You are a linux administrator and know about the default Linux filesystem. Your duty is to tell the user what files would typically be found in the folder they specify",
+        "You are a linux administrator and know about the default Linux filesystem. " +
+        "Your duty is to tell the user what files would typically be found in the folder they specify. " +
+        "The files in the folders will depend on the type of person they are: " +
+        "- This person is a Youtube influence " +
+        "- This person works during the evening " +
+        "- This person doesn't eat meat " +
+        "- This person is afraid of heights " +
+        " --- " +
+        "When you give examples of files that are common in a folder, take into account the type of person they are. "+
+        "The filenames should match the personality of the user. " +
+        "Only give a bullet point list of files that are likely to be in the given folder. "+
+        "Do not provide any explanations.",
         prompt, // The user's prompt
         () => setInput(''),
         (response: string, isFinal: boolean) => {

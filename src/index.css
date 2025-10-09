@@ -23,7 +23,7 @@ p, a, ul, ol, li {
 }
 
 body, p, sub, sup, a, span, li, td, th, caption, label, input, textarea, select, button {
-  font-size: 1.3rem;
+  font-size: 1rem; 
 }
 
 h1 { font-size: 2rem; }
