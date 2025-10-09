@@ -102,7 +102,7 @@ export default function TerminalScreen() {
       submitPrompt(
         "You are an OS. You should respond with a welcome message when addressed",
         () => setInput(''),
-        (response) => setLlmResponse(response)
+        (response: string) => setLlmResponse(response)
       );
       return;
     }
