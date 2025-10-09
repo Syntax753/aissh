@@ -7,11 +7,14 @@ import { GENERATING, submitPrompt } from "./interactions/prompt";
 import ContentButton from '@/components/contentButton/ContentButton';
 import LoadScreen from '@/loadScreen/LoadScreen';
 import TopBar from '@/components/topBar/TopBar';
+import LoginScreen from './LoginScreen';
 
 function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [prompt, setPrompt] = useState<string>('');
   const [responseText, setResponseText] = useState<string>('');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>('');
   
   useEffect(() => {
     if (isLoading) return;
@@ -31,15 +34,24 @@ function HomeScreen() {
     setResponseText(text);
   }
 
+  const handleLogin = (user: string) => {
+    setUsername(user);
+    setIsLoggedIn(true);
+  };
+
   const response = responseText === GENERATING ? <p>hmmm<WaitingEllipsis/></p> : <p>{responseText}</p>
   
   return (
     <div className={styles.container}>
       <TopBar />
       <div className={styles.content}>
-        <p><input type="text" className={styles.promptBox} placeholder="Say anything to this screen" value={prompt} onKeyDown={_onKeyDown} onChange={(e) => setPrompt(e.target.value)}/>
-        <ContentButton text="Send" onClick={() => submitPrompt(prompt, setPrompt, _onRespond)} /></p>
-        {response}
+        {!isLoggedIn ? (
+          <LoginScreen onLogin={handleLogin} />
+        ) : (
+          <><p><input type="text" className={styles.promptBox} placeholder="Say anything to this screen" value={prompt} onKeyDown={_onKeyDown} onChange={(e) => setPrompt(e.target.value)}/>
+          <ContentButton text="Send" onClick={() => submitPrompt(prompt, setPrompt, _onRespond)} /></p>
+          {response}</>
+        )}
       </div>
     </div>
   );
