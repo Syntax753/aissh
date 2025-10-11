@@ -376,6 +376,7 @@ export default function TerminalScreen() {
         'cat <file>  Display file contents',
         'id          Display your persona',
         'mysql       Emulate a mysql login',
+        'fstab       Display the filesystem tree',
         'exit        Log out and return to the login prompt',
       ].join('\n');
     } else if (command.startsWith('ls')) {
@@ -467,6 +468,29 @@ export default function TerminalScreen() {
         output = `cd: not a directory: ${target}`;
       } else {
         output = `cd: no such file or directory: ${target}`;
+      }
+    } else if (command === 'fstab') {
+      if (fs) {
+        const generateTree = (node: FsNode, prefix: string = ''): string => {
+          const entries = Object.keys(node).filter(key => key !== '.' && key !== '..');
+          let result = '';
+
+          entries.forEach((key, index) => {
+            const isLast = index === entries.length - 1;
+            const connector = isLast ? '└── ' : '├── ';
+            const childNode = node[key];
+            const name = isDirectory(childNode) ? `<span style="color: #57a5ff;">${key}</span>` : key;
+            result += `${prefix}${connector}${name}\n`;
+
+            if (isDirectory(childNode)) {
+              result += generateTree(childNode, prefix + (isLast ? '    ' : '│   '));
+            }
+          });
+          return result;
+        };
+        output = `/\n${generateTree(fs)}`;
+      } else {
+        output = 'fstab: filesystem not available.';
       }
     } else if (command === 'pwd') {
       output = cwd;
