@@ -84,13 +84,14 @@ export default function TerminalScreen() {
   const [cwd, setCwd] = useState<string>('/');
   const [llmResponse, setLlmResponse] = useState<string>('');
   const [isLlmStreaming, setIsLlmStreaming] = useState<boolean>(false);
+  const [inMysql, setInMysql] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
   const [loginStep, setLoginStep] = useState<LoginStep>('username');
   const [username, setUsername] = useState<string>('');
 
-  const promptSymbol = loginStep === 'loggedIn' ? `${username}@santyx : ${cwd}$` : loginStep === 'username' ? 'Username:' : 'Password:';
+  const promptSymbol = inMysql ? 'mysql> ' : loginStep === 'loggedIn' ? `${username}@santyx : ${cwd}$` : loginStep === 'username' ? 'Username:' : 'Password:';
 
   useEffect(() => {
     init().then(isLlmConnected => {
@@ -268,13 +269,32 @@ export default function TerminalScreen() {
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const command = input.trim();
+
+    if (inMysql) {
+      const commandLine = `${promptSymbol} ${command}`;
+      if (command === 'exit' || command === 'quit') {
+        setLines([...lines, commandLine, 'Bye']);
+        setInMysql(false);
+      } else if (command) {
+        setLines([
+          ...lines,
+          commandLine,
+          `ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '${command}'`
+        ]);
+      } else {
+        setLines([...lines, commandLine]);
+      }
+      setInput('');
+      return;
+    }
+
     if (loginStep !== 'loggedIn') {
       handleLogin(e);
       return;
     }
 
-    e.preventDefault();
-    const command = input.trim();
     if (!command) return;
 
     setCommandHistory(prev => [command, ...prev]);
@@ -322,6 +342,7 @@ export default function TerminalScreen() {
         'hello       Get a welcome message from the OS',
         'cat <file>  Display file contents',
         'id          Display your persona',
+        'mysql       Emulate a mysql login',
         'exit        Log out and return to the login prompt',
       ].join('\n');
     } else if (command.startsWith('ls')) {
@@ -457,6 +478,25 @@ export default function TerminalScreen() {
           output = `cat: ${filename}: No such file or directory`;
         }
       }
+    } else if (command === 'mysql') {
+      setLines([
+        ...lines,
+        commandLine,
+        'Welcome to the MySQL monitor.  Commands end with ; or \\g.',
+        'Your MySQL connection id is 8',
+        'Server version: 8.0.23 MySQL Community Server - GPL',
+        '',
+        'Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.',
+        '',
+        'Oracle is a registered trademark of Oracle Corporation and/or its',
+        'affiliates. Other names may be trademarks of their respective',
+        'owners.',
+        '',
+        'Type \'help;\' or \'\\h\' for help. Type \'\\c\' to clear the current input statement.',
+      ]);
+      setInMysql(true);
+      setInput('');
+      return;
     } else {
       output = `Command not found: ${command}`;
     }
