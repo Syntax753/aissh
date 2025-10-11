@@ -15,7 +15,13 @@ function HomeScreen() {
   };
 
   if (status === 'loading') return <LoadScreen onComplete={() => setStatus('ready')} onError={handleLoadError} />;
-  if (status === 'error') return <div className="error-screen">Error: {errorMessage}</div>;
+  if (status === 'error') {
+    return (
+      <div className="terminal-bg">
+        <div className="terminal-window">Error: {errorMessage}</div>
+      </div>
+    );
+  }
   return <TerminalScreen />; // status === 'ready'
 }
 

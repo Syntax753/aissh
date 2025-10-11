@@ -43,10 +43,12 @@ function LoadScreen(props:Props) {
   }, [isReadyToLoad, modelId, onComplete, onError]);
 
   const statusContent = wasLoadCancelled ? (
-      <div className={styles.cancelledMessage}>
-        <p>Model loading was cancelled.</p>
-        <p><ContentButton text='Try Again' onClick={() => window.location.reload()} /></p> 
-      </div> 
+      <div className="terminal-bg">
+        <div className="terminal-window">
+          <p>Model loading was cancelled.</p>
+          <p><ContentButton text='Try Again' onClick={() => window.location.reload()} /></p>
+        </div>
+      </div>
     ) : (
       <div className="terminal-bg">
         <div className="terminal-window">
