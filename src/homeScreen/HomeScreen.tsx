@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import styles from './HomeScreen.module.css';
 import LoadScreen from '@/loadScreen/LoadScreen';
 import TerminalScreen from "./TerminalScreen";
 

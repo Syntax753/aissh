@@ -31,7 +31,11 @@ export async function submitPrompt(
       }
 
       setSystemMessage(systemPrompt);
-      generate(prompt, onResponse);
+      const statusUpdateCallback = (response: string, percentComplete: number) => {
+        const isFinal = percentComplete === 1;
+        onResponse(response, isFinal);
+      };
+      generate(prompt, statusUpdateCallback);
     } catch(e) {
       console.error('Error while generating response.', e);
       onResponse('Error while generating response.', true);

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './TerminalLogin.css'; // This file will be created
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
-import LoadScreen from '@/loadScreen/LoadScreen';
 import TopBar from '@/components/topBar/TopBar';
 
 let personalityHash = '';
@@ -74,7 +73,6 @@ const md5 = (str: string): string => {
 };
 
 export default function TerminalScreen() {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [fs, setFs] = useState<FsNode | null>(null);
   const [lines, setLines] = useState<string[]>([]);
   const [input, setInput] = useState<string>('');
@@ -94,7 +92,7 @@ export default function TerminalScreen() {
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [isLoading]);
+  }, []);
 
   useEffect(() => {
     if (llmResponse) {
@@ -111,7 +109,7 @@ export default function TerminalScreen() {
   }, [lines]);
 
   useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
+    const handleClick = () => {
       if (inputRef.current && !isLlmStreaming) {
         inputRef.current.focus();
       }
