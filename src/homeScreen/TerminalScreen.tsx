@@ -465,6 +465,55 @@ export default function TerminalScreen() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (loginStep !== 'loggedIn' || !fs) return;
+
+      const currentInput = input;
+      const parts = currentInput.split(' ').filter(p => p);
+      const lastPart = parts.length > 0 ? parts[parts.length - 1] : '';
+
+      let basePath = cwd;
+      let partialName = lastPart;
+      const lastSlashIndex = lastPart.lastIndexOf('/');
+
+      if (lastSlashIndex !== -1) {
+        const dirPart = lastPart.substring(0, lastSlashIndex + 1);
+        partialName = lastPart.substring(lastSlashIndex + 1);
+        const resolvedDir = resolvePath(dirPart);
+        if (resolvedDir.node) {
+          basePath = resolvedDir.fullPath;
+        } else {
+          return; // Invalid path, no completions
+        }
+      }
+
+      const { node: dirNode } = resolvePath(basePath);
+      if (!dirNode) return;
+
+      const completions = Object.keys(dirNode).filter(child => child.startsWith(partialName));
+
+      if (completions.length === 1) {
+        const completion = completions[0];
+        const isDir = Object.keys(dirNode[completion] ?? {}).length >= 0;
+        const completionText = lastSlashIndex !== -1 ? lastPart.substring(0, lastSlashIndex + 1) + completion : completion;
+        const newInput = parts.slice(0, -1).concat(completionText + (isDir ? '/' : ' ')).join(' ');
+        setInput(newInput);
+      } else if (completions.length > 1) {
+        let commonPrefix = completions[0];
+        for (let i = 1; i < completions.length; i++) {
+          while (completions[i].substring(0, commonPrefix.length) !== commonPrefix) {
+            commonPrefix = commonPrefix.substring(0, commonPrefix.length - 1);
+          }
+        }
+        const completionText = lastSlashIndex !== -1 ? lastPart.substring(0, lastSlashIndex + 1) + commonPrefix : commonPrefix;
+        const newInput = parts.slice(0, -1).concat(completionText).join(' ');
+        setInput(newInput);
+
+        setLines([...lines, `${promptSymbol} ${currentInput}`, completions.join('  ')]);
+      }
+      return;
+    }
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (historyIndex < commandHistory.length - 1) {
