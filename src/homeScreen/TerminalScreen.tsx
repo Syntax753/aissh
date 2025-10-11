@@ -283,6 +283,11 @@ export default function TerminalScreen() {
     const commandLine = `${promptSymbol} ${command}`;
 
     if (command.startsWith('hello')) {
+      setLines([
+        ...lines,
+        commandLine,
+        '...waiting for OS response...'
+      ]);
       submitPrompt(
         persona,
         command.substring('hello'.length).trim(), // The user's prompt
@@ -375,7 +380,7 @@ export default function TerminalScreen() {
         );
         return;
       }
-      output = node ? Object.keys(node).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
+      output = node ? Object.keys(node).join('\n') : `ls: cannot access '${targetPath}': No such file or directory`;
     } else if (command === 'exit') {
       setLines(['Welcome to Santyx OS v0.1']);
       setLoginStep('username');
@@ -427,23 +432,21 @@ export default function TerminalScreen() {
               setInput('');
               setIsLlmStreaming(true);
             }, (response, isFinal) => {
+              let finalResponse = response;
+              if (isFinal && isJpg) {
+                const imageDescription = response.trim();
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imageDescription)}`;
+                const imageElement = `<br/><img src="${imageUrl}" alt="${imageDescription}" style="max-width: 300px; max-height: 300px;" />`;
+                finalResponse = imageDescription + imageElement;
+              }
+
+              setLines(prev => {
+                const newLines = [...prev];
+                newLines[newLines.length - 1] = finalResponse;
+                return newLines;
+              });
+
               if (isFinal) {
-                if (isJpg) {
-                  const imageDescription = response.trim();
-                  const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imageDescription)}`;
-                  const imageElement = `<br/><img src="${imageUrl}" alt="${imageDescription}" style="max-width: 300px; max-height: 300px;" />`;
-                  setLines(prev => {
-                    const newLines = [...prev];
-                    newLines[newLines.length - 1] = imageDescription + imageElement;
-                    return newLines;
-                  });
-                } else {
-                  setLines(prev => {
-                    const newLines = [...prev];
-                    newLines[newLines.length - 1] = response;
-                    return newLines;
-                  });
-                }
                 setIsLlmStreaming(false);
               }
             });
