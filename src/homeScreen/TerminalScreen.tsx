@@ -19,10 +19,11 @@ const FILE_GENERATION_SYSTEM_PROMPT =
  - Your favorite colour is {colour}
  - Your age is {age}
  - Your childhood was {childhood}
+ - Your favourite animal is {animal}
 
 Your filesystem is where you live your life.
 Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames.
- --- 
+--- 
 When you give examples of files that are common in a folder, take into account the type of person you are.
 - Only give a list of files, one per line, that are likely to be in the given folder
 - Do not provide any other information apart from the list
@@ -36,6 +37,12 @@ const PERSONALITY_TRAITS = [
   'adventurous', 'amiable', 'analytical', 'artistic', 'brave', 'calm', 'charismatic', 'charming', 'cheerful', 'clever',
   'compassionate', 'confident', 'conscientious', 'considerate', 'courageous', 'creative', 'curious', 'daring', 'decisive', 'dedicated',
   'determined', 'diligent', 'disciplined', 'dynamic', 'easygoing', 'eloquent', 'empathetic', 'energetic', 'enthusiastic', 'exuberant'
+];
+
+const ANIMALS = [
+  'lion', 'tiger', 'bear', 'wolf', 'fox', 'elephant', 'giraffe', 'zebra', 'monkey', 'gorilla',
+  'hippopotamus', 'rhinoceros', 'crocodile', 'snake', 'lizard', 'turtle', 'eagle', 'hawk', 'owl', 'penguin',
+  'dolphin', 'whale', 'shark', 'octopus', 'jellyfish', 'starfish', 'crab', 'lobster', 'shrimp', 'ant'
 ];
 
 const JOBS = [
@@ -197,13 +204,17 @@ export default function TerminalScreen() {
       // {job}: 1 job from a list of 30
       const job = JOBS[parseInt(personalityHash.substring(2, 4), 16) % JOBS.length];
 
+      // {animal}: 1 animal from a list of 30
+      const animal = ANIMALS[parseInt(personalityHash.substring(2, 4), 16) % ANIMALS.length];
+
       const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT
         .replace('{personality}', personalityTraits.join(', '))
         .replace('{food}', favoriteFoods.join(' and '))
         .replace('{colour}', favoriteColour)
         .replace('{job}', job)
         .replace('{age}', age.toString())
-        .replace('{childhood}', childhood);
+        .replace('{childhood}', childhood)
+        .replace('{animal}', animal);
 
       fullPersonaPrompt = finalPrompt;
       setLines([
@@ -273,7 +284,8 @@ export default function TerminalScreen() {
           .replace('{food}', 'TBD')
           .replace('{colour}', 'TBD')
           .replace('{age}', 'TBD')
-          .replace('{childhood}', 'TBD'),
+          .replace('{childhood}', 'TBD')
+          .replace('{animal}', 'TBD'),
         prompt, // The user's prompt
         () => {
           setInput('');
@@ -335,7 +347,8 @@ export default function TerminalScreen() {
             .replace('{food}', 'TBD')
             .replace('{colour}', 'TBD')
             .replace('{age}', 'TBD')
-            .replace('{childhood}', 'TBD'),
+            .replace('{childhood}', 'TBD')
+            .replace('{animal}', 'TBD'),
           targetPath,
           () => {
             setInput('');
