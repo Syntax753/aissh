@@ -50,6 +50,7 @@ const bootSequenceLines = [
 
 type Props = {
   onComplete: () => void;
+  onError: (message: string) => void;
 }
 
 function LoadScreen(props:Props) {
@@ -59,19 +60,26 @@ function LoadScreen(props:Props) {
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
   const [modelId, setModelId] = useState<string>('');
   const [problems, setProblems] = useState<ModelDeviceProblem[]|null>(null);
-  const {onComplete} = props;
+  const {onComplete, onError} = props;
   
   useEffect(() => {
     if (!isReadyToLoad) {
-      init(setModelId, setProblems, setModalDialogName).then(setIsReadyToLoad);
+      init(setModelId, setProblems, setModalDialogName)
+        .then(setIsReadyToLoad)
+        .catch(e => {
+          console.error("Initialization failed", e);
+          onError(e.message || 'An unknown error occurred during initialization.');
+        });
       return;
     }
 
     let llmLoaded = false;
     const llmLoadPromise = connect(modelId, () => {}); // Status updates are handled by the boot sequence text
-    llmLoadPromise.then(() => {
-      llmLoaded = true;
-    });
+    llmLoadPromise
+      .then(() => { llmLoaded = true; })
+      .catch(e => {
+          onError(e.message || 'An unknown error occurred while loading the model.');
+      });
 
     let i = 0;
     const interval = setInterval(() => {
@@ -85,7 +93,7 @@ function LoadScreen(props:Props) {
     }, 50);
 
     return () => clearInterval(interval);
-  }, [isReadyToLoad, modelId]);
+  }, [isReadyToLoad, modelId, onComplete, onError]);
 
   const statusContent = wasLoadCancelled ? (
       <div className={styles.cancelledMessage}>
