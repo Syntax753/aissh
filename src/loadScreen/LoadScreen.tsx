@@ -1,7 +1,6 @@
 import {useState, useEffect} from "react";
 import { ModelDeviceProblemsDialog, ModelDeviceProblem } from "decent-portal";
 
-import styles from './LoadScreen.module.css';
 import '../homeScreen/TerminalLogin.css';
 import { init } from "./interactions/initialization";
 import TopBar from '@/components/topBar/TopBar';
