@@ -1,7 +1,7 @@
 {
   "id":"aissh",
   "name":"AISSH - Avoid Intrusion into Super Secret Home",
-  "description":"TODO replace this with a description of your app.",
+  "description":"AISSH - Avoid Intrusion into Super Secret Home",
   "supportedModels":[
     {"id":"Llama-3.1-8B-Instruct-q4f16_1-MLC-1k","appBehaviorSummary":"2025 Decent default model"}
   ]
