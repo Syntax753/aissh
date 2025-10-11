@@ -427,13 +427,14 @@ export default function TerminalScreen() {
               `...opening ${filename}...`
             ]);
             const systemPrompt = `${persona}\n\n---\n\n${CAT_SYSTEM_PROMPT.replace('{filename}', filename)}`;
-            const isJpg = filename.toLowerCase().endsWith('.jpg');
+            const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg'];
+            const isImage = imageExtensions.some(ext => filename.toLowerCase().endsWith(ext));
             submitPrompt(systemPrompt, filename, () => {
               setInput('');
               setIsLlmStreaming(true);
             }, (response, isFinal) => {
               let finalResponse = response;
-              if (isFinal && isJpg) {
+              if (isFinal && isImage) {
                 const imageDescription = response.trim();
                 const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imageDescription)}`;
                 const imageElement = `<br/><img src="${imageUrl}" alt="${imageDescription}" style="max-width: 300px; max-height: 300px;" />`;
