@@ -118,6 +118,17 @@ export default function TerminalScreen() {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [lines]);
 
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      if (inputRef.current && !isLlmStreaming) {
+        inputRef.current.focus();
+      }
+    };
+
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, [isLlmStreaming]);
+
   if (isLoading) return <LoadScreen onComplete={() => setIsLoading(false)} />;
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -300,11 +311,24 @@ export default function TerminalScreen() {
         'hello       Get a welcome message from the OS',
         'cat <file>  Display file contents',
         'id          Display your persona',
+        'exit        Log out and return to the login prompt',
       ].join('\n');
     } else if (command.startsWith('ls')) {
       const parts = command.split(' ').filter(p => p);
       const pathArg = parts.length > 1 ? parts[1] : null;
       let targetPath = pathArg || cwd;
+    } else if (command === 'exit') {
+      setLines(['Welcome to Santyx OS v0.1']);
+      setLoginStep('username');
+      setUsername('');
+      createInitialFs(''); // Reset FS, will be recreated with user on login
+      setCwd('/');
+      setCommandHistory([]);
+      setHistoryIndex(-1);
+      persona = '';
+      personalityHash = '';
+      setInput('');
+      return;
 
       if (pathArg) {
         if (pathArg === '..') {
@@ -455,7 +479,7 @@ export default function TerminalScreen() {
   };
 
   return (
-    <div className="terminal-bg" onClick={() => inputRef.current?.focus()}>
+    <div className="terminal-bg">
       <div className="terminal-window">
         {lines.map((line, idx) => (
           <div key={idx} dangerouslySetInnerHTML={{ __html: line.includes('<img') ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
