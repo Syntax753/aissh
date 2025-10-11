@@ -129,6 +129,12 @@ export default function TerminalScreen() {
     return () => window.removeEventListener('click', handleClick);
   }, [isLlmStreaming]);
 
+  useEffect(() => {
+    if (!isLlmStreaming) {
+      inputRef.current?.focus();
+    }
+  }, [isLlmStreaming]);
+
   if (isLoading) return <LoadScreen onComplete={() => setIsLoading(false)} />;
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,27 +322,16 @@ export default function TerminalScreen() {
     } else if (command.startsWith('ls')) {
       const parts = command.split(' ').filter(p => p);
       const pathArg = parts.length > 1 ? parts[1] : null;
-      let targetPath = pathArg || cwd;
-    } else if (command === 'exit') {
-      setLines(['Welcome to Santyx OS v0.1']);
-      setLoginStep('username');
-      setUsername('');
-      createInitialFs(''); // Reset FS, will be recreated with user on login
-      setCwd('/');
-      setCommandHistory([]);
-      setHistoryIndex(-1);
-      persona = '';
-      personalityHash = '';
-      setInput('');
-      return;
+      let targetPath;
 
       if (pathArg) {
         if (pathArg === '..') {
           targetPath = cwd === '/' ? '/' : cwd.substring(0, cwd.lastIndexOf('/')) || '/';
         } else {
-          const { node, fullPath } = resolvePath(pathArg);
-          targetPath = fullPath;
+          targetPath = resolvePath(pathArg).fullPath;
         }
+      } else {
+        targetPath = cwd;
       }
 
       const { node } = resolvePath(targetPath);
@@ -380,6 +375,18 @@ export default function TerminalScreen() {
         return;
       }
       output = node ? Object.keys(node).join('  ') : `ls: cannot access '${targetPath}': No such file or directory`;
+    } else if (command === 'exit') {
+      setLines(['Welcome to Santyx OS v0.1']);
+      setLoginStep('username');
+      setUsername('');
+      createInitialFs(''); // Reset FS, will be recreated with user on login
+      setCwd('/');
+      setCommandHistory([]);
+      setHistoryIndex(-1);
+      persona = '';
+      personalityHash = '';
+      setInput('');
+      return;
     } else if (command === 'clear') {
       setLines([]);
       setInput('');
