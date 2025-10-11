@@ -11,27 +11,23 @@ type FsNode = {
 
 type LoginStep = 'username' | 'password' | 'loggedIn';
 
-const FILE_GENERATION_SYSTEM_PROMPT =
-`Your persona is determined by the following traits:
+const PERSONALITY_PROMPT_TEMPLATE = `Your persona is determined by the following traits:
  - Your personality is {personality}
  - Your job is {job}
  - Your favorite food is {food}
  - Your favorite colour is {colour}
  - Your age is {age}
  - Your childhood was {childhood}
- - Your favourite animal is {animal}
+ - Your favourite animal is {animal}`;
 
-Your filesystem is where you live your life.
-Given the name of a folder, imagine what files you store in there as part of your life, and tell me the filenames.
---- 
-When you give examples of files that are common in a folder, take into account the type of person you are.
+const FILE_GENERATION_SYSTEM_PROMPT = `When you give examples of files that are common in a folder, take into account the type of person you are.
 - Only give a list of files, one per line, that are likely to be in the given folder
 - Do not provide any other information apart from the list
 - Limit the number of files in a folder to between 5 and 15 file names.`;
 
 const CAT_SYSTEM_PROMPT = `Given the filename {filename}, generate content that the file might contain. Limit yourself to between 5-30 lines.`;
 
-let fullPersonaPrompt = '';
+let persona = '';
 
 const PERSONALITY_TRAITS = [
   'adventurous', 'amiable', 'analytical', 'artistic', 'brave', 'calm', 'charismatic', 'charming', 'cheerful', 'clever',
@@ -207,7 +203,7 @@ export default function TerminalScreen() {
       // {animal}: 1 animal from a list of 30
       const animal = ANIMALS[parseInt(personalityHash.substring(2, 4), 16) % ANIMALS.length];
 
-      const finalPrompt = FILE_GENERATION_SYSTEM_PROMPT
+      const personaDetails = PERSONALITY_PROMPT_TEMPLATE
         .replace('{personality}', personalityTraits.join(', '))
         .replace('{food}', favoriteFoods.join(' and '))
         .replace('{colour}', favoriteColour)
@@ -216,11 +212,10 @@ export default function TerminalScreen() {
         .replace('{childhood}', childhood)
         .replace('{animal}', animal);
 
-      fullPersonaPrompt = finalPrompt;
+      persona = personaDetails;
       setLines([
         ...lines,
-        `${promptSymbol} *****`,
-        `System prompt: ${finalPrompt}`,''
+        `${promptSymbol} *****`
       ]);
       setLoginStep('loggedIn');
     }
@@ -271,22 +266,9 @@ export default function TerminalScreen() {
     const commandLine = `${promptSymbol} ${command}`;
 
     if (command.startsWith('hello')) {
-      const prompt = command.substring('hello'.length).trim();
-      setLines([
-        ...lines,
-        commandLine,
-        '...waiting for OS response...'
-      ]);
       submitPrompt(
-        FILE_GENERATION_SYSTEM_PROMPT
-          .replace('{personality}', 'TBD')
-          .replace('{job}', 'TBD')
-          .replace('{food}', 'TBD')
-          .replace('{colour}', 'TBD')
-          .replace('{age}', 'TBD')
-          .replace('{childhood}', 'TBD')
-          .replace('{animal}', 'TBD'),
-        prompt, // The user's prompt
+        persona,
+        command.substring('hello'.length).trim(), // The user's prompt
         () => {
           setInput('');
           setIsLlmStreaming(true);
@@ -317,6 +299,7 @@ export default function TerminalScreen() {
         'cd <dir>    Change directory',
         'hello       Get a welcome message from the OS',
         'cat <file>  Display file contents',
+        'id          Display your persona',
       ].join('\n');
     } else if (command.startsWith('ls')) {
       const parts = command.split(' ').filter(p => p);
@@ -341,14 +324,7 @@ export default function TerminalScreen() {
           '...generating directory contents...'
         ]);
         submitPrompt(
-          FILE_GENERATION_SYSTEM_PROMPT
-            .replace('{personality}', 'TBD')
-            .replace('{job}', 'TBD')
-            .replace('{food}', 'TBD')
-            .replace('{colour}', 'TBD')
-            .replace('{age}', 'TBD')
-            .replace('{childhood}', 'TBD')
-            .replace('{animal}', 'TBD'),
+          `${persona}\n\n---\n\n${FILE_GENERATION_SYSTEM_PROMPT}`,
           targetPath,
           () => {
             setInput('');
@@ -394,6 +370,8 @@ export default function TerminalScreen() {
       }
     } else if (command === 'pwd') {
       output = cwd;
+    } else if (command === 'id') {
+      output = persona;
     } else if (command.startsWith('cat ')) {
       const filename = command.substring(4).trim();
       if (!filename) {
@@ -411,7 +389,7 @@ export default function TerminalScreen() {
               commandLine,
               `...generating content for ${filename}...`
             ]);
-            const systemPrompt = `${fullPersonaPrompt}\n\n---\n\n${CAT_SYSTEM_PROMPT.replace('{filename}', filename)}`;
+            const systemPrompt = `${persona}\n\n---\n\n${CAT_SYSTEM_PROMPT.replace('{filename}', filename)}`;
             const isJpg = filename.toLowerCase().endsWith('.jpg');
             submitPrompt(systemPrompt, filename, () => {
               setInput('');
