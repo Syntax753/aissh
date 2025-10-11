@@ -495,9 +495,8 @@ export default function TerminalScreen() {
 
       if (completions.length === 1) {
         const completion = completions[0];
-        const isDir = Object.keys(dirNode[completion] ?? {}).length >= 0;
         const completionText = lastSlashIndex !== -1 ? lastPart.substring(0, lastSlashIndex + 1) + completion : completion;
-        const newInput = parts.slice(0, -1).concat(completionText + (isDir ? '/' : ' ')).join(' ');
+        const newInput = parts.slice(0, -1).concat(completionText).join(' ');
         setInput(newInput);
       } else if (completions.length > 1) {
         let commonPrefix = completions[0];
