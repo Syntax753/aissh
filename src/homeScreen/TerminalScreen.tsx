@@ -340,7 +340,8 @@ export default function TerminalScreen() {
         setLines([
           ...lines,
           commandLine,
-          '...generating directory contents...'
+          // '...generating directory contents...'
+          '...fetching files...'
         ]);
         submitPrompt(
           `${persona}\n\n---\n\n${FILE_GENERATION_SYSTEM_PROMPT}`,
