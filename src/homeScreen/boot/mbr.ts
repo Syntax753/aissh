@@ -1,4 +1,4 @@
-const bootSequenceLines = [
+const bootSequenceLines: string[] = [
   '[    0.000000] Linux version 6.5.0-santyx (dev@santyx) (gcc (Ubuntu 11.2.0-19ubuntu1) 11.2.0, GNU ld (GNU Binutils for Ubuntu) 2.38)',
   '[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.5.0-santyx root=UUID=... ro quiet splash',
   '[    0.000000] KERNEL supported cpus:',
@@ -34,28 +34,133 @@ const bootSequenceLines = [
   '[    4.000000] systemd[1]: Reached target Network.',
   '[    4.500000] systemd[1]: Reached target Sockets.',
   '[    5.000000] systemd[1]: Reached target Timers.',
-  '[    5.500000] systemd[1]: Starting Login Service...',
-  '[    6.000000] systemd[1]: Started Login Service.',
+  '[    5.100000] systemd[1]: Starting Login Service...',
+  '[    5.200000] systemd[1]: Started Login Service.',
+  '[    5.300000] systemd[1]: Listening on D-Bus System Message Bus Socket.',
+  '[    5.400000] systemd[1]: Reached target System Initialization.',
+  '[    5.500000] systemd[1]: Started Daily apt download activities.',
+  '[    5.600000] systemd[1]: Started Daily apt upgrade and clean activities.',
+  '[    5.700000] systemd[1]: Reached target Timers.',
+  '[    5.800000] systemd[1]: Listening on ACPID Listen Socket.',
+  '[    5.900000] systemd[1]: Listening on Avahi mDNS/DNS-SD Stack Activation Socket.',
+  '[    6.000000] systemd[1]: Listening on CUPS Scheduler.',
+  '[    6.100000] systemd[1]: Listening on Open-iSCSI iscsid DEPRECATED internal socket.',
+  '[    6.200000] systemd[1]: Starting Detect the available GPUs and deal with any system changes...',
+  '[    6.300000] systemd[1]: Starting Dispatcher daemon for systemd-networkd...',
+  '[    6.400000] systemd[1]: Starting Network Name Resolution...',
+  '[    6.500000] systemd[1]: Starting User Login Management...',
+  '[    6.600000] systemd[1]: Started Dispatcher daemon for systemd-networkd.',
+  '[    6.700000] systemd[1]: Started Network Name Resolution.',
+  '[    6.800000] systemd[1]: Started User Login Management.',
+  '[    6.900000] systemd[1]: Reached target User and Group Name Lookups.',
+  '[    7.000000] systemd[1]: Started Detect the available GPUs and deal with any system changes.',
+  '[    7.100000] systemd[1]: Starting Load/Save Screen Backlight Brightness of backlight:acpi_video0...',
+  '[    7.200000] systemd[1]: Starting Load/Save Screen Backlight Brightness of backlight:intel_backlight...',
+  '[    7.300000] systemd[1]: Finished Load/Save Screen Backlight Brightness of backlight:acpi_video0.',
+  '[    7.400000] systemd[1]: Finished Load/Save Screen Backlight Brightness of backlight:intel_backlight.',
+  '[    7.500000] systemd[1]: Reached target Local Graphics.',
+  '[    7.600000] systemd[1]: Starting Record Runlevel Change in UTMP...',
+  '[    7.70000g ] systemd[1]: Finished Record Runlevel Change in UTMP.',
+  '[    7.800000] systemd[1]: Starting Accounts Service...',
+  '[    7.900000] systemd[1]: Starting Avahi mDNS/DNS-SD Stack...',
+  '[    8.000000] systemd[1]: Starting Bluetooth service...',
+  '[    8.100000] systemd[1]: Starting CUPS Scheduler...',
+  '[    8.200000] systemd[1]: Starting regular background program processing daemon...',
+  '[    8.300000] systemd[1]: Starting Modem Manager...',
+  '[    8.400000] systemd[1]: Starting Network Manager...',
+  '[    8.500000] systemd[1]: Starting Power Profiles daemon...',
+  '[    8.600000] systemd[1]: Starting Switcheroo Control Proxy service...',
+  '[    8.700000] systemd[1]: Started Accounts Service.',
+  '[    8.800000] systemd[1]: Started Avahi mDNS/DNS-SD Stack.',
+  '[    8.900000] systemd[1]: Started Bluetooth service.',
+  '[    9.000000] systemd[1]: Started CUPS Scheduler.',
+  '[    9.100000] systemd[1]: Started regular background program processing daemon.',
+  '[    9.200000] systemd[1]: Started Modem Manager.',
+  '[    9.300000] systemd[1]: Started Network Manager.',
+  '[    9.400000] systemd[1]: Started Power Profiles daemon.',
+  '[    9.500000] systemd[1]: Started Switcheroo Control Proxy service.',
+  '[    9.600000] systemd[1]: Reached target Network.',
+  '[    9.700000] systemd[1]: Starting GNOME Display Manager...',
+  '[    9.800000] systemd[1]: Starting Hold until boot process finishes up...',
+  '[    9.900000] systemd[1]: Starting User Manager for UID 125...',
+  '[   10.000000] systemd[1]: Started User Manager for UID 125.',
+  '[   10.100000] systemd[1]: Started GNOME Display Manager.',
+  '[   10.200000] systemd[1]: Started Hold until boot process finishes up.',
+  '[   10.300000] systemd[1]: Reached target Multi-User System.',
+  '[   10.400000] systemd[1]: Reached target Graphical Interface.',
+  '[   10.500000] systemd[1]: Starting Santyx OS... aissh v2.4.1',
+  '[   10.600000] aissh[1]: Loading LLM...',
+  '[   10.700000] aissh[1]: Checking device compatibility...',
+  '[   10.800000] aissh[1]: WebGPU found.',
+  '[   10.900000] aissh[1]: Initializing model: Llama-3-8B-Instruct-q4f32_1-1k...',
+  '[   11.000000] aissh[1]: Fetching model weights from cache...',
+  '[   12.500000] aissh[1]: Model weights loaded.',
+  '[   12.600000] aissh[1]: Compiling shaders...',
+  '[   14.200000] aissh[1]: Shaders compiled.',
+  '[   14.300000] aissh[1]: Creating pipeline...',
+  '[   15.000000] aissh[1]: Pipeline created.',
+  '[   15.100000] aissh[1]: LLM ready.',
+  '[   15.200000] aissh[1]: Starting UI services...',
+  '[   15.300000] aissh[1]: Santyx OS started successfully.',
 ];
+
+const parseTimestamp = (line: string): number => {
+  const match = line.match(/\[\s*(\d+\.\d+)]/);
+  if (match && match[1]) {
+    return parseFloat(match[1]) * 1000; // Convert to milliseconds
+  }
+  return -1; // Return -1 if no timestamp is found
+};
 
 export const runBootSequence = async (
   setLines: React.Dispatch<React.SetStateAction<string[]>>,
   llmLoadPromise: Promise<any>,
   onComplete: () => void
 ) => {
-  let i = 0;
   let llmLoaded = false;
+  llmLoadPromise.then(() => {
+    llmLoaded = true;
+  });
 
-  const interval = setInterval(() => {
-    if (llmLoaded) {
-      clearInterval(interval);
+  let startTime = 0;
+  let lineIndex = 0;
+
+  const processNextLine = () => {
+    if (llmLoaded || lineIndex >= bootSequenceLines.length) {
       onComplete();
-    } else {
-      setLines(prev => [...prev, bootSequenceLines[i % bootSequenceLines.length]].slice(-100)); // Keep the last 100 lines
-      i++;
+      return;
     }
-  }, 50); // Adjust speed of boot sequence here
 
-  await llmLoadPromise;
-  llmLoaded = true;
+    const line = bootSequenceLines[lineIndex];
+    setLines(prev => [...prev, line].slice(-100));
+
+    const currentTime = parseTimestamp(line);
+    if (startTime === 0 && currentTime > 0) {
+      startTime = performance.now() - currentTime;
+    }
+
+    lineIndex++;
+
+    if (lineIndex < bootSequenceLines.length) {
+      const nextLine = bootSequenceLines[lineIndex];
+      const nextTime = parseTimestamp(nextLine);
+      
+      if (nextTime > 0) {
+        const delay = (startTime + nextTime) - performance.now();
+        setTimeout(processNextLine, Math.max(0, delay));
+      } else {
+        // If next line has no timestamp, process it quickly
+        setTimeout(processNextLine, 20);
+      }
+    } else {
+      // End of sequence, wait for LLM if it's not loaded yet
+      if (!llmLoaded) {
+        llmLoadPromise.then(onComplete);
+      } else {
+        onComplete();
+      }
+    }
+  };
+
+  processNextLine();
 };
