@@ -145,21 +145,52 @@ export default function TerminalScreen() {
   const createInitialFs = (user: string) => {
     const root: FsNode = {
       home: {
+        '.': {},
+        '..': {},
         [user]: {
+          '.': {},
+          '..': {},
           '.bashrc': {},
           '.config': {},
           '.mozilla': {},
           '.ssh': {},
-          'Desktop': {},
-          'Documents': {},
-          'Music': {},
-          'Pictures': {},
-          'Videos': {},
+          'Desktop': {
+            '.': {},
+            '..': {},
+          },
+          'Downloads': {
+            '.': {},
+            '..': {},
+          },
+          'Documents': {
+            '.': {},
+            '..': {},
+          },
+          'Music': {
+            '.': {},
+            '..': {},
+          },
+          'Pictures': {
+            '.': {},
+            '..': {},
+          },
+          'Videos': {
+            '.': {},
+            '..': {},
+          },
         },
       },
-      tmp: {},
-      etc: {},
+      tmp: {
+        '.': {},
+        '..': {},
+      },
+      etc: {
+        '.': {},
+        '..': {},
+      },
       var: {
+        '.': {},
+        '..': {},
         'password.txt': {},
       },
     };
@@ -239,6 +270,8 @@ export default function TerminalScreen() {
     }
     setInput('');
   };
+
+  const isDirectory = (node: FsNode | null): boolean => !!node && Object.keys(node).length > 0;
 
   const resolvePath = (path: string): { node: FsNode | null, fullPath: string } => {
     if (!fs) return { node: null, fullPath: '' };
@@ -362,7 +395,7 @@ export default function TerminalScreen() {
 
       const { node } = resolvePath(targetPath);
 
-      if (node && Object.keys(node).length === 0) {
+      if (node && Object.keys(node).filter(k => k !== '.' && k !== '..').length === 0) {
         setLines([
           ...lines,
           commandLine,
@@ -401,7 +434,14 @@ export default function TerminalScreen() {
         );
         return;
       }
-      output = node ? Object.keys(node).join('\n') : `ls: cannot access '${targetPath}': No such file or directory`;
+      if (node) {
+        output = Object.keys(node).map(child => {
+          const childNode = node[child];
+          return isDirectory(childNode) ? `<span style="color: #57a5ff;">${child}</span>` : child;
+        }).join('\n');
+      } else {
+        output = `ls: cannot access '${targetPath}': No such file or directory`;
+      }
     } else if (command === 'exit') {
       setLines(['Welcome to Santyx OS v0.1']);
       setLoginStep('username');
@@ -421,8 +461,10 @@ export default function TerminalScreen() {
     } else if (command.startsWith('cd ')) {
       const target = command.slice(3).trim();
       const { node, fullPath } = resolvePath(target);
-      if (node) {
+      if (node && isDirectory(node)) {
         setCwd(fullPath);
+      } else if (node && !isDirectory(node)) {
+        output = `cd: not a directory: ${target}`;
       } else {
         output = `cd: no such file or directory: ${target}`;
       }
@@ -438,7 +480,7 @@ export default function TerminalScreen() {
         const { node } = resolvePath(filename);
         if (node) {
           // It's a directory
-          if (Object.keys(node).length > 0) {
+          if (isDirectory(node)) {
             output = `cat: ${filename}: Is a directory`;
           } else {
             // For now, we treat empty objects as files.
@@ -582,7 +624,7 @@ export default function TerminalScreen() {
     <div className="terminal-bg">
       <div className="terminal-window">
         {lines.map((line, idx) => (
-          <div key={idx} dangerouslySetInnerHTML={{ __html: line.includes('<img') ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
+          <div key={idx} dangerouslySetInnerHTML={{ __html: (line.includes('<img') || line.includes('<span')) ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
         ))}
         <div ref={terminalEndRef} />
       </div>
