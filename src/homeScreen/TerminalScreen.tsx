@@ -20,7 +20,8 @@ const PERSONALITY_PROMPT_TEMPLATE = `Your persona is determined by the following
  - Your childhood was {childhood}
  - Your favourite animal is {animal}`;
 
-const FILE_GENERATION_SYSTEM_PROMPT = `When you give examples of files that are common in a folder, take into account the type of person you are.
+const FILE_GENERATION_SYSTEM_PROMPT = `Generate a list of filenames that would exist in a Linux folder called {cwd}
+- Consider your persona when generating the list of files
 - Only give a list of files, one per line, that are likely to be in the given folder
 - Do not provide any other information apart from the list
 - Limit the number of files in a folder to between 5 and 15 file names.`;
@@ -411,7 +412,7 @@ export default function TerminalScreen() {
           '...fetching files...'
         ]);
         submitPrompt(
-          `${persona}\n\n---\n\n${FILE_GENERATION_SYSTEM_PROMPT}`,
+          `${persona}\n\n---\n\n${FILE_GENERATION_SYSTEM_PROMPT.replace('{cwd}', targetPath)}`,
           targetPath,
           () => {
             setInput('');
