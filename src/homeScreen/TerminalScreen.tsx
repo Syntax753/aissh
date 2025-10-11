@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './TerminalLogin.css'; // This file will be created
-import { init } from '@/homeScreen/interactions/initialization';
-import LoadScreen from '@/loadScreen/LoadScreen';
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
+import LoadScreen from '@/loadScreen/LoadScreen';
+import TopBar from '@/components/topBar/TopBar';
 
 let personalityHash = '';
 type FsNode = {
@@ -74,11 +74,9 @@ const md5 = (str: string): string => {
 };
 
 export default function TerminalScreen() {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [fs, setFs] = useState<FsNode | null>(null);
-  const [lines, setLines] = useState<string[]>([
-    'Welcome to Santyx OS v0.1',
-  ]);
+  const [lines, setLines] = useState<string[]>([]);
   const [input, setInput] = useState<string>('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -93,14 +91,6 @@ export default function TerminalScreen() {
   const [username, setUsername] = useState<string>('');
 
   const promptSymbol = inMysql ? 'mysql> ' : loginStep === 'loggedIn' ? `${username}@santyx : ${cwd}$` : loginStep === 'username' ? 'Username:' : 'Password:';
-
-  useEffect(() => {
-    init().then(isLlmConnected => {
-      if (!isLlmConnected) {
-        setIsLoading(true);
-      }
-    });
-  }, []);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -136,8 +126,6 @@ export default function TerminalScreen() {
       inputRef.current?.focus();
     }
   }, [isLlmStreaming]);
-
-  if (isLoading) return <LoadScreen onComplete={() => setIsLoading(false)} />;
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -207,7 +195,7 @@ export default function TerminalScreen() {
       // Create the FS first, so username is available for cwd
       createInitialFs(value);
       setUsername(value);
-      setLines([...lines, `${promptSymbol} ${value}`]);
+      setLines(['Welcome to Santyx OS v0.1', `${promptSymbol} ${value}`]);
       setLoginStep('password');
       // We set cwd here so the prompt in the password step shows the future path
       setCwd(`/home/${value}`);
@@ -682,29 +670,32 @@ export default function TerminalScreen() {
   };
 
   return (
-    <div className="terminal-bg">
-      <div className="terminal-window">
-        {lines.map((line, idx) => (
-          <div key={idx} dangerouslySetInnerHTML={{ __html: (line.includes('<img') || line.includes('<span')) ? line : line.replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
-        ))}
-        <div ref={terminalEndRef} />
+    <>
+      <TopBar />
+      <div className="terminal-bg">
+        <div className="terminal-window">
+          {lines.map((line, idx) => (
+            <div key={idx} dangerouslySetInnerHTML={{ __html: (line && (line.includes('<img') || line.includes('<span'))) ? line : (line || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
+          ))}
+          <div>
+            <form onSubmit={handleSubmit} autoComplete="off">
+              <span className="terminal-prompt">{promptSymbol} </span>
+              <input
+                ref={inputRef}
+                disabled={isLlmStreaming}
+                className="terminal-input"
+                value={input}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                type={loginStep === 'password' ? 'password' : 'text'}
+                autoFocus
+              />
+              <button type="submit" style={{ display: 'none' }} />
+            </form>
+          </div>
+          <div ref={terminalEndRef} />
+        </div>
       </div>
-      <div>
-        <form onSubmit={handleSubmit} autoComplete="off">
-          <span className="terminal-prompt">{promptSymbol} </span>
-          <input
-            ref={inputRef}
-            disabled={isLlmStreaming}
-            className="terminal-input"
-            value={input}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            type={loginStep === 'password' ? 'password' : 'text'}
-            autoFocus
-          />
-          <button type="submit" style={{ display: 'none' }} />
-        </form>
-      </div>
-    </div>
+    </>
   );
 }

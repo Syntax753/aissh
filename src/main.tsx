@@ -2,12 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { initApp } from './init/init.ts';
 import './index.css';
-import TerminalScreen from './homeScreen/TerminalScreen.tsx';
+import HomeScreen from './homeScreen/HomeScreen.tsx';
 
 initApp().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <TerminalScreen />
+      <HomeScreen />
     </React.StrictMode>
   );
 });
