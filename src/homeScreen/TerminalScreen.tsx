@@ -366,18 +366,25 @@ export default function TerminalScreen() {
     let output = '';
     if (command === 'help') {
       output = [
-        'Available commands:',
-        'help        Show this help message',
-        'pwd         Print working directory',
-        'ls          List directory contents',
-        'clear       Clear the terminal',
-        'cd <dir>    Change directory',
-        'hello       Get a welcome message from the OS',
-        'cat <file>  Display file contents',
-        'id          Display your persona',
-        'mysql       Emulate a mysql login',
-        'fstab       Display the filesystem tree',
-        'exit        Log out and return to the login prompt',
+        'Santyx OS Commands:',
+        '',
+        'File System:',
+        '  ls <dir>      List directory contents',
+        '  cd <dir>      Change directory',
+        '  pwd           Print working directory',
+        '  cat <file>    Display file contents',
+        '  mkdir <dir>   Create a new directory',
+        '  fstab         Display the filesystem tree',
+        '',
+        'Console:',
+        '  help          Show this help message',
+        '  clear         Clear the terminal',
+        '  id            Display your persona',
+        '  exit          Log out and return to the login prompt',
+        '',
+        'System:',
+        '  hello         Get a welcome message from the OS',
+        '  mysql         Emulate a mysql login',
       ].join('\n');
     } else if (command.startsWith('ls')) {
       const parts = command.split(' ').filter(p => p);
@@ -468,6 +475,35 @@ export default function TerminalScreen() {
         output = `cd: not a directory: ${target}`;
       } else {
         output = `cd: no such file or directory: ${target}`;
+      }
+    } else if (command.startsWith('mkdir ')) {
+      const newDirName = command.substring(6).trim();
+      if (!newDirName) {
+        output = 'mkdir: missing operand';
+      } else {
+        const { node: parentNode } = resolvePath(cwd);
+        if (!parentNode) {
+          // This should not happen if cwd is always valid
+          output = `mkdir: cannot create directory '${newDirName}': Internal error`;
+        } else {
+          const { node: existingNode } = resolvePath(newDirName);
+          if (existingNode) {
+            output = `mkdir: cannot create directory '${newDirName}': File exists`;
+          } else {
+            setFs(prevFs => {
+              if (!prevFs) return null;
+              // Re-resolve parent node within the setter to ensure we have the latest state
+              const { node: currentParentNode } = resolvePath(cwd);
+              if (currentParentNode) {
+                currentParentNode[newDirName] = {
+                  '.': {},
+                  '..': {},
+                };
+              }
+              return { ...prevFs };
+            });
+          }
+        }
       }
     } else if (command === 'fstab') {
       if (fs) {
