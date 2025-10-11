@@ -27,6 +27,12 @@ const FILE_GENERATION_SYSTEM_PROMPT = `Generate a list of filenames that would e
 
 const CAT_SYSTEM_PROMPT = `Given the filename {filename}, generate content that the file might contain. Limit yourself to between 5-30 lines.`;
 
+const UNKNOWN_COMMAND_SYSTEM_PROMPT = `You are a Linux terminal emulator.
+Your persona is: {persona}
+The user '{username}' is in directory '{cwd}' and typed: '{command}'.
+If this is a plausible Linux command, provide a realistic output.
+If not, respond with: 'Command not found: {command}'.`;
+
 let persona = '';
 
 const PERSONALITY_TRAITS = [
@@ -587,7 +593,29 @@ export default function TerminalScreen() {
       setInput('');
       return;
     } else {
-      output = `Command not found: ${command}`;
+      setLines([
+        ...lines,
+        commandLine,
+        `...`
+      ]);
+      const systemPrompt = UNKNOWN_COMMAND_SYSTEM_PROMPT
+        .replace('{persona}', persona)
+        .replace('{username}', username)
+        .replace('{cwd}', cwd)
+        .replace('{command}', command);
+
+      submitPrompt(systemPrompt, command, () => {
+        setInput('');
+        setIsLlmStreaming(true);
+      }, (response, isFinal) => {
+        setLines(prev => {
+          const newLines = [...prev];
+          newLines[newLines.length - 1] = response;
+          return newLines;
+        });
+        if (isFinal) setIsLlmStreaming(false);
+      });
+      return;
     }
 
     setLines([
