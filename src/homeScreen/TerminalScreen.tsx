@@ -419,7 +419,7 @@ export default function TerminalScreen() {
             setLines([
               ...lines,
               commandLine,
-              `...generating content for ${filename}...`
+              `...opening ${filename}...`
             ]);
             const systemPrompt = `${persona}\n\n---\n\n${CAT_SYSTEM_PROMPT.replace('{filename}', filename)}`;
             const isJpg = filename.toLowerCase().endsWith('.jpg');
