@@ -101,20 +101,17 @@ function LoadScreen(props:Props) {
     );
   
   return (
-    <div className={styles.container}>
-      <TopBar />
-      <div className={styles.content}>
-        {statusContent}
-      </div>
-
-      <ModelDeviceProblemsDialog 
-        isOpen={modalDialogName === ModelDeviceProblemsDialog.name} 
+    <>
+      <TopBar/>
+      {statusContent}
+      <ModelDeviceProblemsDialog
+        isOpen={modalDialogName === ModelDeviceProblemsDialog.name}
         modelId={modelId}
-        problems={problems} 
-        onConfirm={() => {setModalDialogName(null); setIsReadyToLoad(true); }} 
+        problems={problems}
+        onConfirm={() => {setModalDialogName(null); setIsReadyToLoad(true); }}
         onCancel={() => {setModalDialogName(null); setWasLoadCancelled(true); }}
       />
-    </div>
+    </>
   );
 }
 
