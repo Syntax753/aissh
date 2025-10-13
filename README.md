@@ -1,95 +1,62 @@
 # AISSH - Avoid Intrusion into Super Secret Home
 
-This is a placeholder README.md for AISSH - Avoid Intrusion into Super Secret Home.
+AISSH is the demonstration of an alternative approach to security.
 
-What does AISSH - Avoid Intrusion into Super Secret Home do? I have no idea. It will be up to you, the developer of AISSH - Avoid Intrusion into Super Secret Home, to describe it.
+Data has value, and so we protect it behind authentication barriers like a linux login. This slows down the potential attacker, but the data has value, so it's worth the effort to try and brute-force the credentials.
 
-## Licensing
+However, what if we instead rendered the data value-less?
 
-Code and other files in this repository are licensed under the MIT open source license.
+With AISSH, this is accomplished by emulating a consistent filesystem for every username/password pair. Only one of which, of course, is the real file-system.
 
-The fonts are hosted from decentapps.net rather than included in this repo. Their licensing is separate, but will be something compatible with open source, e.g., OFS SFIL.
+By leveraging an embedded browser LLM, AISSH emulates a realistic file-system purely based on the username/password hash. Repeated logins with the same credentials will yield the same filesystem.
 
-## Support
+An attacker can therefore no longer discern what is real and what is not real. This renders the data value-less.
 
-Tell your users where to go. 
+No more hacking, happy world.
 
-I mean... to file bugs! An easy thing is to send them to a Github issues page.
+## Live Demo
+
+http://decentapps.net/aissh
+
+## Commands
+
+Typing `help` into the AISSH console, will give you the implemented commands. I have implemented some of the core bash functionality, as well as some helper commands to understand what's going on under the hood:
+
+1. `ls` and `cd` are implemented including bash completion, absolute and relative paths. This can be used to navigate the filesystem
+2. `cat` is overloaded so you can cat any file. Depending on the file-type and file-name, the contents will vary
+  - `cat` a picture file to also get an LLM-generated picture of the picture description in the file content
+  - `cat` a music file to get the description of a song that can be used to generate a real music file using various online music generators. I have not found a free service yet, so not generating the music automatically
+
+## Under the hood
+
+1. The loading screen is a bit of fun that emulates a linux server boot-up. In reality, it's a loading screen for the embedded LLM which runs in the background. The LLM is running cold (temp=0) to ensure deterministic behaviour across logins with same username/password combination
+1. `fstab` shows you the current filesystem as a filetree. Notice that the folders are empty to start with
+1. `id` shows the persona generated for the login
+1. `ls` an empty folder, to call the LLM to generate a file-list. The persona is taken into account when generating the file-list
+1. `cat` will also take the persona into account when generating file content via the LLM. It also handles image files and generates an inline picture for the given content
+
+## The magic
+
+1. When logging in, the username/password pair generates a hash
+1. This hash is then used generate a persona with:
+  - 3-5 traits from a list of 30
+  - 1-2 favourite foods from a list of 20
+  - 1 colour from a list of 10
+  - 1 job from a list of 30
+  - 1 animal from a list of 30
+  - an age between 18 and 90
+  - 1 adjective describing childhood from a list of 10
+1. The generated persona can be seen with the `id` command
+1. This persona is then used when creating the file-list in a given folder (filenames) when using `ls`, as well as the contents of file when using `cat`
+
+The combination of the LLM running at temp=0, and the deterministic nature of the persona creation ensures a repeatable experience for each username/password combination
+
+Identifying whether the data is a real filesystem is made harder as the persona-approach ensures there is a common theme across filenames and file content.
 
 ## Contact
 
-Give your users some way to contact you or your organization. 
+Linkedin: https://www.linkedin.com/in/peterturnerlondon/
 
-## Community
+## Licensing
 
-Point your users to some public forum. Then they will be able to join forces to more effectively complain about your work! If you'd like a channel for your app on the [AISSH - Avoid Intrusion into Super Secret Homes Discord server](https://discord.gg/kkp3x4X2Vb), just ask - we can probably do it. The channel would be named "AISSH - Avoid Intrusion into Super Secret Home". And what do people in that channel talk about? AISSH - Avoid Intrusion into Super Secret Home, of course.
-
-
-
-
-
-
-
-# Developer Guide (Delete After You Don't Need It)
-
-The content preceding this section might be things you want to keep and revise for users of your app to see. But this section is for you, the developer. If you're feeling super-confident, you could just delete it all now. Do it, you smug puppy!
-
-## Running AISSH - Avoid Intrusion into Super Secret Home during Development
-
-1. Change your working directory to the project root (folder this file is in).
-2. `npm install`
-3. `npm run dev`
-4. Browse to http://localhost:3000/ or whatever URL is shown in the output of the previous command.
-
-## What You Have Now
-
-The unmodified template installed for AISSH - Avoid Intrusion into Super Secret Home includes these screens:
-
-* A loading screen that will show progress loading model into browser via WebLLM.
-* A home screen that lets you send a simple prompt to a local LLM. Arriving to the home screen without an LLM connection will redirect to the loading screen. This redirection will be confirmed with a dialog if you are serving locally. This is to avoid excessive LLM reloading triggered by code changes during development.
-
-The dependencies are minimal: (see package.json)
-
-* webllm - For web-based LLM inference.
-* dev dependencies for Vite/Typescript (build tooling), Vitest (test runner)
-
-There is no monolithic dev-dependency package to install and upgrade. You are in charge of updating and revising your dependencies in the way you like.
-
-## Removing and Changing Unwanted Things
-
-The template isn't a framework. It's just a reasonable starting point for a certain kind of web app. You should be able to make changes to match your preferences fairly easily. Rather than presenting you with a bunch of configuration options that manipulate a black box, you can just delete or rewrite code more directly.
-
-Following this sensibility, things like the LLM wrapper, widgets, and persistence functionality are in-lined into the project rather than kept as dependencies in packages. This practice is sometimes called "vendoring". The basic rationale is that sometimes it's a better to spend time understanding and writing code rather than maintaining the sprawl of a thousand or more packages. These decisions have tradeoffs, but I prefer to set the balance towards low-dependency development.
-
-## PWA Support
-
-You'll see a little bit of extra code for PWA support - the service worker registration and a manifest.json file. If this is unwelcome complexity, feel free to delete it. But it does give you and your users an ability to install the web app locally as an app that can run fully offline.
-
-## Changing LLM Models
-
-You can configure the supported models in `/public/app-manifest.json` to the models you would like your app to support. It's reasonable to only support one model, since your prompts and other behavior may be coupled to a single model. But adding more models can give your users options for varied device capabilities.
-
-## Key Folders and Files
-
-* index.html - top-level index.html that will be deployed to web root.
-* src/ - root for all source that is built into the bundle.
-  * common/ - Kitchen-sink folder for small utility modules and other source that doesn't merit grouping under a more general concept.
-  * init/ - location for any source files called as part of initialiation.
-  * developer/ - code that is really only meant to run at dev time - testing tools, profiling, backdoors.
-  * llm/ - client access and other utilities around LLM. llmUtil.ts has top-level functions for calling an inference interface provided by WebLLM.
-  * persistence/ - utilities around persisting data in IndexedDb in a key/document style with capability of importing/exporting documents as files.
-  * loadScreen/ - screen that loads the chosen LLM model locally and shows progress.
-  * homeScreen/ - screen that is arrived at after loading completes. In the template, this screen has a basic LLM chat interface that can be replaced.
-* public/ - files and folders that will be web-accessible in the folder that built bundles and index.html are deployed to.
-
-## Source Conventions
-
-You can depart from the conventions below if you don't like them. I include them as an explanation for the starting files, and you are invited to continue the conventions if you want.
-
-* A "screen" is just a cluster of self-contained UI that renders over the entire client rect.
-* Each screen function uses React hooks for state management and tends to be the top-level of state passing down to sub-components through props.
-* The screen function calls an `init()` function when it mounts which can also instance module-scope variables as additional state.
-* Any state that is intended to be shared between screens is persisted using `/src/persistence/pathStore`. There is no need for an in-memory store (e.g. Redux) with this approach. And if you persist all data needed to initialize a screen, it effectively creates a saved session that a user can return to on the same device. That saved state is also exportable and importable (useful for backing up or transferring data between devices).
-* If functionality is tied to one screen, keep source for it under the corresponding screen folder.
-* If functionality is common to multiple screens and has more than one source file, create a new folder under `/src` for it.
-* Otherwise, common functionality can go in a source file under `/common`.
+MIT
