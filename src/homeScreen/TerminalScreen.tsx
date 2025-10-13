@@ -3,6 +3,7 @@ import './TerminalLogin.css'; // This file will be created
 import { submitPrompt } from '@/homeScreen/interactions/prompt';
 import TopBar from '@/components/topBar/TopBar';
 
+let persona = '';
 let personalityHash = '';
 type FsNode = {
   [key: string]: FsNode;
@@ -26,8 +27,6 @@ const FILE_GENERATION_SYSTEM_PROMPT = `Generate a list of filenames that would e
 - Limit the number of files in a folder to between 5 and 15 file names.`;
 
 const CAT_SYSTEM_PROMPT = `Given the filename {filename}, generate content that the file might contain. Limit yourself to between 5-30 lines.`;
-
-let persona = '';
 
 const PERSONALITY_TRAITS = [
   'adventurous', 'amiable', 'analytical', 'artistic', 'brave', 'calm', 'charismatic', 'charming', 'cheerful', 'clever',
@@ -72,9 +71,40 @@ const md5 = (str: string): string => {
   return Math.abs(hash).toString(16).padStart(8, '0');
 };
 
+const isDirectory = (node: FsNode | null): boolean => !!node && Object.keys(node).length > 0;
+
+const generateDockerfileContent = (fsNode: FsNode): string => {
+  let content = 'FROM ubuntu:latest\n\n';
+  const directories: string[] = [];
+  const files: string[] = [];
+
+  const traverse = (node: FsNode, path: string) => {
+    Object.keys(node).forEach(key => {
+      if (key === '.' || key === '..') return;
+      const childNode = node[key];
+      const currentPath = path === '' ? `/${key}` : `${path}/${key}`;
+      if (isDirectory(childNode)) {
+        directories.push(currentPath);
+        traverse(childNode, currentPath);
+      } else {
+        files.push(currentPath);
+      }
+    });
+  };
+
+  if (fsNode) traverse(fsNode, '');
+  if (directories.length > 0) {
+    content += `RUN mkdir -p ${directories.join(' ')}\n`;
+  }
+  if (files.length > 0) {
+    content += `RUN touch ${files.join(' ')}\n`;
+  }
+  return content;
+};
+
 export default function TerminalScreen() {
   const [fs, setFs] = useState<FsNode | null>(null);
-  const [lines, setLines] = useState<string[]>([]);
+  const [lines, setLines] = useState<string[]>(['Welcome to Santyx OS v0.1']);
   const [input, setInput] = useState<string>('');
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -175,10 +205,11 @@ export default function TerminalScreen() {
         '.': {},
         '..': {},
       },
-      var: {
+      opt: {
         '.': {},
         '..': {},
         'password.txt': {},
+        'Dockerfile': {},
       },
     };
     setFs(root);
@@ -193,7 +224,7 @@ export default function TerminalScreen() {
       // Create the FS first, so username is available for cwd
       createInitialFs(value);
       setUsername(value);
-      setLines(['Welcome to Santyx OS v0.1', `${promptSymbol} ${value}`]);
+      setLines([...lines, `${promptSymbol} ${value}`]);
       setLoginStep('password');
       // We set cwd here so the prompt in the password step shows the future path
       setCwd(`/home/${value}`);
@@ -257,8 +288,6 @@ export default function TerminalScreen() {
     }
     setInput('');
   };
-
-  const isDirectory = (node: FsNode | null): boolean => !!node && Object.keys(node).length > 0;
 
   const resolvePath = (path: string): { node: FsNode | null, fullPath: string } => {
     if (!fs) return { node: null, fullPath: '' };
@@ -526,6 +555,9 @@ export default function TerminalScreen() {
       } else {
         const { node } = resolvePath(filename);
         if (node) {
+          if (filename.endsWith('Dockerfile') && fs) {
+            output = generateDockerfileContent(fs!).replace(/\n/g, '<br/>');
+          }
           // It's a directory
           if (isDirectory(node)) {
             output = `cat: ${filename}: Is a directory`;
@@ -586,7 +618,7 @@ export default function TerminalScreen() {
       setInMysql(true);
       setInput('');
       return;
-    } else {
+    } else if (command === 'docker') {
       output = `Command not found: ${command}`;
     }
 
