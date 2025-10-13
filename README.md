@@ -22,12 +22,12 @@ http://decentapps.net/aissh
 
 Typing `help` into the AISSH console, will give you the implemented commands. I have implemented some of the core bash functionality, as well as some helper commands to understand what's going on under the hood:
 
-1. `ls` and `cd` are implemented including bash completion, absolute and relative paths. This can be used to navigate the filesystem
+1. `ls` and `cd` have basic functionality implemented including bash completion, absolute and relative paths. This can be used to navigate the filesystem
 2. `cat` is overloaded so you can cat any file. Depending on the file-type and file-name, the contents will vary
   - `cat` a picture file to also get an LLM-generated picture of the picture description in the file content
   - `cat` a music file to get the description of a song that can be used to generate a real music file using various online music generators. I have not found a free service yet, so not generating the music automatically
 
-## Under the hood
+### Under the hood
 
 1. The loading screen is a bit of fun that emulates a linux server boot-up. In reality, it's a loading screen for the embedded LLM which runs in the background. The LLM is running cold (temp=0) to ensure deterministic behaviour across logins with same username/password combination
 1. `fstab` shows you the current filesystem as a filetree. Notice that the folders are empty to start with
