@@ -134,7 +134,7 @@ export const runBootSequence = async (
     if (lineIndex >= bootSequenceLines.length) {
       // End of sequence, wait for LLM if it's not loaded yet
       const bootConsoleLine = 'Booting console...';
-      setLines(prev => [...prev, '']);
+      setLines(prev => [...prev, ' ']);
       const bootConsoleLineIndex = bootSequenceLines.length;
       const sequenceStartTime = performance.now();
 
