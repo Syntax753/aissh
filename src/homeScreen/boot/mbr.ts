@@ -104,14 +104,6 @@ const bootSequenceLines: string[] = [
   '[   15.300000] aissh[1]: Santyx OS started successfully.',
 ];
 
-const loopingLines: string[] = [
-  '[  {ts}.000000] aissh[1]: LLM still loading, checking network services...',
-  '[  {ts}.100000] aissh[1]: Network services OK.',
-  '[  {ts}.200000] aissh[1]: Verifying model integrity...',
-  '[  {ts}.500000] aissh[1]: Model integrity OK.',
-  '[  {ts}.600000] aissh[1]: Waiting for GPU to be ready...',
-];
-
 const parseTimestamp = (line: string): number => {
   const match = line.match(/\[\s*(\d+\.\d+)]/);
   if (match && match[1]) {
@@ -132,52 +124,46 @@ export const runBootSequence = async (
 
   let startTime = 0;
   let lineIndex = 0;
-  let looping = false;
 
   const processNextLine = () => {
     if (llmLoaded) {
       onComplete();
       return;
     }
-
-    let line;
-    if (!looping && lineIndex < bootSequenceLines.length) {
-      line = bootSequenceLines[lineIndex];
-    } else {
-      if (!looping) {
-        looping = true;
-      }
-      const loopLineIndex = (lineIndex - bootSequenceLines.length) % loopingLines.length; // This will now work correctly
-      const lastBootTime = parseTimestamp(bootSequenceLines[bootSequenceLines.length - 1]);
-      const loopTime = lastBootTime / 1000 + (lineIndex - bootSequenceLines.length) * 0.8 + loopLineIndex * 0.1;
-      line = loopingLines[loopLineIndex].replace('{ts}', loopTime.toFixed(0).padStart(3, ' '));
+    
+    if (lineIndex >= bootSequenceLines.length) {
+      // End of sequence, wait for LLM if it's not loaded yet
+      const spinnerChars = ['/', '-', '\\', '|'];
+      let spinnerIndex = 0;
+      const intervalId = setInterval(() => {
+        if (llmLoaded) {
+          clearInterval(intervalId);
+          onComplete();
+          return;
+        }
+        const lastLine = bootSequenceLines[bootSequenceLines.length - 1];
+        setLines(prev => {
+          const newLines = [...prev];
+          newLines[newLines.length - 1] = `${lastLine} ${spinnerChars[spinnerIndex]}`;
+          return newLines;
+        });
+        spinnerIndex = (spinnerIndex + 1) % spinnerChars.length;
+      }, 100);
+      return;
     }
 
+    const line = bootSequenceLines[lineIndex];
     setLines(prev => [...prev, line].slice(-100));
 
     const currentTime = parseTimestamp(line);
     if (startTime === 0 && currentTime > 0) {
       startTime = performance.now() - currentTime;
     }
-
     lineIndex++;
-
-    if (!looping && lineIndex < bootSequenceLines.length) {
-      const nextLine = bootSequenceLines[lineIndex];
-      const nextTime = parseTimestamp(nextLine);
-
-      if (nextTime > 0) {
-        const delay = (startTime + nextTime) - performance.now();
-        setTimeout(processNextLine, Math.max(0, delay));
-      } else {
-        // If next line has no timestamp, process it quickly
-        setTimeout(processNextLine, 20);
-      }
-    } else {
-      // End of main sequence or in loop, continue with a small delay
-      // The check for llmLoaded at the start of processNextLine will handle completion.
-      setTimeout(processNextLine, 200);
-    }
+    const nextLine = bootSequenceLines[lineIndex];
+    const nextTime = nextLine ? parseTimestamp(nextLine) : -1;
+    const delay = nextTime > 0 ? (startTime + nextTime) - performance.now() : 20;
+    setTimeout(processNextLine, Math.max(0, delay));
   };
 
   processNextLine();

@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import { ModelDeviceProblemsDialog, ModelDeviceProblem } from "decent-portal";
+import ProgressBar from "@/components/progressBar/ProgressBar";
 
 import '../homeScreen/TerminalLogin.css';
 import { init } from "./interactions/initialization";
@@ -19,6 +20,7 @@ function LoadScreen(props:Props) {
   const [wasLoadCancelled, setWasLoadCancelled] = useState<boolean>(false);
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
   const [modelId, setModelId] = useState<string>('');
+  const [percentComplete, setPercentComplete] = useState<number>(0);
   const [problems, setProblems] = useState<ModelDeviceProblem[]|null>(null);
   const {onComplete, onError} = props;
   
@@ -33,7 +35,12 @@ function LoadScreen(props:Props) {
       return;
     }
 
-    const llmLoadPromise = connect(modelId, () => {}); // Status updates are handled by the boot sequence text
+    const onProgress = (text: string, progress: number) => {
+      const percentMatch = text.match(/\[(\d+)\/(\d+)\]/);
+      const percent = percentMatch ? parseInt(percentMatch[1], 10) / parseInt(percentMatch[2], 10) : progress;
+      setPercentComplete(percent);
+    };
+    const llmLoadPromise = connect(modelId, onProgress);
     llmLoadPromise
       .catch(e => {
           onError(e.message || 'An unknown error occurred while loading the model.');
@@ -52,6 +59,12 @@ function LoadScreen(props:Props) {
       <div className="terminal-bg">
         <div className="terminal-window">
           {bootLines.map((line, index) => <div key={index}>{line}</div>)}
+        </div>
+        <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', right: '2rem' }}>
+          <ProgressBar
+            percentComplete={percentComplete}
+            text="Loading LLM"
+          />
         </div>
       </div>
     );
