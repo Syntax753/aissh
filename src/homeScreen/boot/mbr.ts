@@ -60,7 +60,7 @@ const bootSequenceLines: string[] = [
   '[    7.400000] systemd[1]: Finished Load/Save Screen Backlight Brightness of backlight:intel_backlight.',
   '[    7.500000] systemd[1]: Reached target Local Graphics.',
   '[    7.600000] systemd[1]: Starting Record Runlevel Change in UTMP...',
-  '[    7.70000g ] systemd[1]: Finished Record Runlevel Change in UTMP.',
+  '[    7.700000] systemd[1]: Finished Record Runlevel Change in UTMP.',
   '[    7.800000] systemd[1]: Starting Accounts Service...',
   '[    7.900000] systemd[1]: Starting Avahi mDNS/DNS-SD Stack...',
   '[    8.000000] systemd[1]: Starting Bluetooth service...',
