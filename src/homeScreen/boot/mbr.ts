@@ -150,8 +150,14 @@ export const runBootSequence = async (
         let timeRemainingStr = 'calculating...';
         if (percent > 0.01) {
           const totalTime = timeElapsed / percent;
-          const timeRemaining = Math.round((totalTime - timeElapsed) / 1000);
-          timeRemainingStr = `${timeRemaining}s remaining`;
+          const timeRemainingSeconds = Math.round((totalTime - timeElapsed) / 1000);
+          if (timeRemainingSeconds > 60) {
+            const minutes = Math.floor(timeRemainingSeconds / 60);
+            const seconds = timeRemainingSeconds % 60;
+            timeRemainingStr = `${minutes}:${seconds.toString().padStart(2, '0')} remaining`;
+          } else {
+            timeRemainingStr = `${timeRemainingSeconds}s remaining`;
+          }
         }
 
         setLines(prev => {
@@ -159,7 +165,7 @@ export const runBootSequence = async (
           newLines[bootConsoleLineIndex] = `${bootConsoleLine} ${timeRemainingStr}`;
           return newLines;
         });
-      }, 250);
+      }, 1000);
       return;
     }
 
