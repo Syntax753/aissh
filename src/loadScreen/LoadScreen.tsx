@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef} from "react";
-import { ModelDeviceProblemsDialog, ModelDeviceProblem, TerminalScreen } from "decent-portal";
+import { ModelDeviceProblemsDialog, ModelDeviceProblem } from "decent-portal";
 import ProgressBar from "@/components/progressBar/ProgressBar";
 
 import '../homeScreen/TerminalLogin.css';
