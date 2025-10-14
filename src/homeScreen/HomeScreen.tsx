@@ -34,7 +34,7 @@ function HomeScreen() {
     );
   }
   return (
-    <div ref={terminalWindowRef} style={{ height: '100%', overflowY: 'auto' }}>
+    <div ref={terminalWindowRef} style={{ height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
       <TerminalScreen />
     </div>
   ); // status === 'ready'
