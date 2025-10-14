@@ -133,22 +133,18 @@ export const runBootSequence = async (
     
     if (lineIndex >= bootSequenceLines.length) {
       // End of sequence, wait for LLM if it's not loaded yet
-      const spinnerChars = ['/', '-', '\\', '|'];
-      let spinnerIndex = 0;
       const intervalId = setInterval(() => {
         if (llmLoaded) {
           clearInterval(intervalId);
           onComplete();
           return;
         }
-        const lastLine = bootSequenceLines[bootSequenceLines.length - 1];
         setLines(prev => {
           const newLines = [...prev];
-          newLines[newLines.length - 1] = `${lastLine} ${spinnerChars[spinnerIndex]}`;
+          newLines[newLines.length - 1] = `${newLines[newLines.length - 1]}.`;
           return newLines;
         });
-        spinnerIndex = (spinnerIndex + 1) % spinnerChars.length;
-      }, 100);
+      }, 1000);
       return;
     }
 
