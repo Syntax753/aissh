@@ -114,6 +114,7 @@ const parseTimestamp = (line: string): number => {
 
 export const runBootSequence = async (
   setLines: React.Dispatch<React.SetStateAction<string[]>>,
+  getPercentComplete: () => number,
   llmLoadPromise: Promise<any>,
   onComplete: () => void
 ) => {
@@ -121,7 +122,6 @@ export const runBootSequence = async (
   llmLoadPromise.then(() => {
     llmLoaded = true;
   });
-
   let startTime = 0;
   let lineIndex = 0;
 
@@ -133,18 +133,33 @@ export const runBootSequence = async (
     
     if (lineIndex >= bootSequenceLines.length) {
       // End of sequence, wait for LLM if it's not loaded yet
+      const bootConsoleLine = 'Booting console...';
+      setLines(prev => [...prev, bootConsoleLine]);
+      const bootConsoleLineIndex = bootSequenceLines.length;
+      const sequenceStartTime = performance.now();
+
       const intervalId = setInterval(() => {
         if (llmLoaded) {
           clearInterval(intervalId);
           onComplete();
           return;
         }
+
+        const percent = getPercentComplete();
+        const timeElapsed = performance.now() - sequenceStartTime;
+        let timeRemainingStr = 'calculating...';
+        if (percent > 0.01) {
+          const totalTime = timeElapsed / percent;
+          const timeRemaining = Math.round((totalTime - timeElapsed) / 1000);
+          timeRemainingStr = `${timeRemaining}s remaining`;
+        }
+
         setLines(prev => {
           const newLines = [...prev];
-          newLines[newLines.length - 1] = `${newLines[newLines.length - 1]}.`;
+          newLines[bootConsoleLineIndex] = `${bootConsoleLine} ${timeRemainingStr}`;
           return newLines;
         });
-      }, 1000);
+      }, 250);
       return;
     }
 

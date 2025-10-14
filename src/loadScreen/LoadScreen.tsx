@@ -17,6 +17,7 @@ type Props = {
 function LoadScreen(props:Props) {
   const terminalWindowRef = useRef<HTMLDivElement>(null);
   const [bootLines, setBootLines] = useState<string[]>([]);
+  const percentCompleteRef = useRef<number>(0);
   const [isReadyToLoad, setIsReadyToLoad] = useState<boolean>(false);
   const [wasLoadCancelled, setWasLoadCancelled] = useState<boolean>(false);
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
@@ -39,6 +40,7 @@ function LoadScreen(props:Props) {
     const onProgress = (text: string, progress: number) => {
       const percentMatch = text.match(/\[(\d+)\/(\d+)\]/);
       const percent = percentMatch ? parseInt(percentMatch[1], 10) / parseInt(percentMatch[2], 10) : progress;
+      percentCompleteRef.current = percent;
       setPercentComplete(percent);
     };
     const llmLoadPromise = connect(modelId, onProgress);
@@ -46,7 +48,7 @@ function LoadScreen(props:Props) {
       .catch(e => {
           onError(e.message || 'An unknown error occurred while loading the model.');
       });
-    runBootSequence(setBootLines, llmLoadPromise, onComplete);
+    runBootSequence(setBootLines, () => percentCompleteRef.current, llmLoadPromise, onComplete);
   }, [isReadyToLoad, modelId, onComplete, onError]);
 
   useEffect(() => {
