@@ -1,5 +1,5 @@
-import {useState, useEffect} from "react";
-import { ModelDeviceProblemsDialog, ModelDeviceProblem } from "decent-portal";
+import {useState, useEffect, useRef} from "react";
+import { ModelDeviceProblemsDialog, ModelDeviceProblem, TerminalScreen } from "decent-portal";
 import ProgressBar from "@/components/progressBar/ProgressBar";
 
 import '../homeScreen/TerminalLogin.css';
@@ -15,6 +15,7 @@ type Props = {
 }
 
 function LoadScreen(props:Props) {
+  const terminalWindowRef = useRef<HTMLDivElement>(null);
   const [bootLines, setBootLines] = useState<string[]>([]);
   const [isReadyToLoad, setIsReadyToLoad] = useState<boolean>(false);
   const [wasLoadCancelled, setWasLoadCancelled] = useState<boolean>(false);
@@ -48,6 +49,15 @@ function LoadScreen(props:Props) {
     runBootSequence(setBootLines, llmLoadPromise, onComplete);
   }, [isReadyToLoad, modelId, onComplete, onError]);
 
+  useEffect(() => {
+    if (terminalWindowRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = terminalWindowRef.current;
+      if (scrollHeight - scrollTop <= clientHeight + 20) { // 20px tolerance
+        terminalWindowRef.current.scrollTop = terminalWindowRef.current.scrollHeight;
+      }
+    }
+  }, [bootLines]);
+
   const statusContent = wasLoadCancelled ? (
       <div className="terminal-bg">
         <div className="terminal-window">
@@ -63,7 +73,7 @@ function LoadScreen(props:Props) {
             text="Loading LLM"
           />
         </div>
-        <div className="terminal-window" style={{ paddingTop: '1rem' }}>
+        <div ref={terminalWindowRef} className="terminal-window" style={{ paddingTop: '1rem' }}>
           {bootLines.map((line, index) => <div key={index}>{line}</div>)}
         </div>
       </div>
