@@ -18,6 +18,8 @@ No more hacking, happy world.
 
 http://decentapps.net/aissh
 
+The first time AISSH is run, AISSH will download and embed a Llama-3.1-8B model in the browser. Subsequent runs will use the cached LLM and so load much faster.
+
 ## Commands
 
 Typing `help` into the AISSH console, will give you the implemented commands. I have implemented some of the core bash functionality, as well as some helper commands to understand what's going on under the hood:
@@ -56,6 +58,15 @@ Identifying whether the data is a real filesystem is made harder as the persona-
 ## Contact
 
 Linkedin: https://www.linkedin.com/in/peterturnerlondon/
+
+## Acknowledgements
+
+### Decent Framework
+The Decent Framework facilitates embedding an LLM into your local dev environment, for local inference development.
+
+This opens up AI development to all (for free)!
+
+https://github.com/erikh2000/create-decent-app
 
 ## Licensing
 

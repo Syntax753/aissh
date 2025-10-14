@@ -57,14 +57,14 @@ function LoadScreen(props:Props) {
       </div>
     ) : (
       <div className="terminal-bg">
-        <div className="terminal-window">
-          {bootLines.map((line, index) => <div key={index}>{line}</div>)}
-        </div>
-        <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', right: '2rem' }}>
+        <div style={{ padding: '1rem 2rem' }}>
           <ProgressBar
             percentComplete={percentComplete}
             text="Loading LLM"
           />
+        </div>
+        <div className="terminal-window" style={{ paddingTop: '1rem' }}>
+          {bootLines.map((line, index) => <div key={index}>{line}</div>)}
         </div>
       </div>
     );
