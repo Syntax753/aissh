@@ -42,7 +42,7 @@ http://decentapps.net/aissh
 
 <img width="1269" height="1200" alt="image" src="https://github.com/user-attachments/assets/dacf5ce0-b41b-4561-9f9c-b3cb2d9ff0a6" />
 
-- even say `hello` to the person you hacked
+- you can even say `hello` to the person you hacked
 
 <img width="1269" height="545" alt="image" src="https://github.com/user-attachments/assets/7dabf2dc-76b4-47c1-8eab-76f26e3eda57" />
 
