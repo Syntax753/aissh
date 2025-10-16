@@ -32,8 +32,7 @@ The first time AISSH is run, AISSH will download and embed a Llama-3.1-8B model 
 
 - `cat` is overloaded too so here's the contents of an image file
 
-<img width="2523" height="1117" alt="image" src="https://github.com/user-attachments/assets/06c72521-9c83-4523-a33e-2c7fd80776b1" />
-
+<img width="1357" height="1108" alt="image" src="https://github.com/user-attachments/assets/c72b3179-5251-47a5-8127-cf7631d2d5c9" />
 
 ## Commands
 
