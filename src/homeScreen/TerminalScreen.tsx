@@ -675,7 +675,7 @@ export default function TerminalScreen() {
           {lines.map((line, idx) => (
             <div key={idx} dangerouslySetInnerHTML={{ __html: (line && (line.includes('<img') || line.includes('<span'))) ? line : (line || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') }} />
           ))}
-          <div>
+          <div className="terminal-input-prompt">
             <form onSubmit={handleSubmit} autoComplete="off">
               <span className="terminal-prompt">{promptSymbol} </span>
               <input

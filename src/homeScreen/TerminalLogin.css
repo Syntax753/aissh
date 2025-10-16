@@ -28,6 +28,11 @@
   width: 100%;
 }
 
+.terminal-input-prompt {
+  white-space: nowrap;
+  overflow-x: clip;
+}
+
 .terminal-prompt {
   color: #00ff00;
 }
