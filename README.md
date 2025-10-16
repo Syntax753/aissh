@@ -38,6 +38,10 @@ http://decentapps.net/aissh
 
 <img width="1357" height="1108" alt="image" src="https://github.com/user-attachments/assets/c72b3179-5251-47a5-8127-cf7631d2d5c9" />
 
+- say `hello` to the person you hacked
+
+<img width="2479" height="372" alt="image" src="https://github.com/user-attachments/assets/a4d7c98b-b4f5-4c02-9483-deb8d6182ffb" />
+
 ## Commands
 
 Typing `help` into the AISSH console, will give you the implemented commands. I have implemented some of the core bash functionality, as well as some helper commands to understand what's going on under the hood:
