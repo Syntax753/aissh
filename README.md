@@ -16,9 +16,13 @@ No more hacking, happy world.
 
 ## Live Demo
 
-http://decentapps.net/aissh
+*High-spec or GPU based machine advisable for better experience*
 
-The first time AISSH is run, AISSH will download and embed a Llama-3.1-8B model in the browser. Subsequent runs will use the cached LLM and so load much faster.
+*The first time AISSH is run, AISSH will embed a Llama-3.1-8B model in the browser. This is a substantial download so will take a while*
+
+Subsequent runs will use the cached LLM and so load much faster (~10-15 seconds).
+
+http://decentapps.net/aissh
 
 ## Features
 
