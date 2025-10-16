@@ -32,15 +32,15 @@ http://decentapps.net/aissh
 
 - `ls` and `cd` commands for filesystem navigation using relative and absolute paths. Bash completion even works!
 
-<img width="1935" height="1040" alt="image" src="https://github.com/user-attachments/assets/d08dae95-754d-4535-9910-4d044937c6bd" />
+<img width="1147" height="1058" alt="image" src="https://github.com/user-attachments/assets/59fbbca4-89de-4e67-8c45-6f5492c053e9" />
 
 - `cat` command is overloaded, and will generate realistic file contents for any filename and extension
 
-<img width="1326" height="1089" alt="image" src="https://github.com/user-attachments/assets/64937c47-38c9-4503-b725-f8b556eca42b" />
+<img width="1030" height="1195" alt="image" src="https://github.com/user-attachments/assets/3f185916-5535-47c8-b464-6665857fa92d" />
 
-- `cat` is overloaded too so here's the contents of an image file
+- `cat` even supports image files 🥳
 
-<img width="1357" height="1108" alt="image" src="https://github.com/user-attachments/assets/c72b3179-5251-47a5-8127-cf7631d2d5c9" />
+<img width="1269" height="1200" alt="image" src="https://github.com/user-attachments/assets/dacf5ce0-b41b-4561-9f9c-b3cb2d9ff0a6" />
 
 - say `hello` to the person you hacked
 
