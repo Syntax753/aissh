@@ -40,7 +40,7 @@ http://decentapps.net/aissh
 
 - say `hello` to the person you hacked
 
-<img width="2479" height="372" alt="image" src="https://github.com/user-attachments/assets/a4d7c98b-b4f5-4c02-9483-deb8d6182ffb" />
+<img width="1167" height="485" alt="image" src="https://github.com/user-attachments/assets/50104bed-59b2-411c-919f-4307d68105bc" />
 
 ## Commands
 
