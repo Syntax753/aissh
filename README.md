@@ -24,6 +24,10 @@ Subsequent runs will use the cached LLM and so load much faster (~10-15 seconds)
 
 http://decentapps.net/aissh
 
+## Hello/World
+
+<img width="1052" height="1065" alt="image" src="https://github.com/user-attachments/assets/cdeb27ef-9b17-4e7d-bb2e-8549832f3717" />
+
 ## Features
 
 - `ls` and `cd` commands for filesystem navigation using relative and absolute paths. Bash completion even works!
