@@ -607,7 +607,7 @@ export default function TerminalScreen() {
     setInput('');
   };
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyUp = (_: React.KeyboardEvent<HTMLInputElement>) => {
     if (keyRepeatTimeoutRef.current) {
       clearTimeout(keyRepeatTimeoutRef.current);
       keyRepeatTimeoutRef.current = null;
