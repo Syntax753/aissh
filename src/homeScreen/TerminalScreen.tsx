@@ -85,6 +85,10 @@ export default function TerminalScreen() {
   const inputRef = useRef<HTMLInputElement>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
+  const [password, setPassword] = useState<string>('');
+  const keyRepeatTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const keyRepeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const [loginStep, setLoginStep] = useState<LoginStep>('username');
   const [username, setUsername] = useState<string>('');
 
@@ -126,7 +130,11 @@ export default function TerminalScreen() {
   }, [isLlmStreaming]);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
+    if (loginStep === 'password') {
+      setPassword(e.target.value);
+    } else {
+      setInput(e.target.value);
+    }
   };
 
   const createInitialFs = (user: string) => {
@@ -186,14 +194,14 @@ export default function TerminalScreen() {
 
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const value = input.trim();
+    const value = loginStep === 'password' ? password.trim() : input.trim();
     if (!value) return;
 
     if (loginStep === 'username') {
       // Create the FS first, so username is available for cwd
       createInitialFs(value);
       setUsername(value);
-      setLines(['Welcome to Santyx OS v0.1', `${promptSymbol} ${value}`]);
+      setLines(prev => [...prev, `<span class="terminal-prompt-old">${promptSymbol}</span> ${value}`]);
       setLoginStep('password');
       // We set cwd here so the prompt in the password step shows the future path
       setCwd(`/home/${value}`);
@@ -201,7 +209,7 @@ export default function TerminalScreen() {
       // Any password works for now
 
       // Generate and store the personality hash
-      const combined = username + value; // Using the password 'value'
+      const combined = username + password;
       personalityHash = md5(combined);
 
       // {personality}: 3-5 traits from a list of 30
@@ -251,10 +259,11 @@ export default function TerminalScreen() {
       persona = personaDetails;
       setLines([
         ...lines,
-        `${promptSymbol} *****`
+        `<span class="terminal-prompt-old">${promptSymbol}</span> *****`
       ]);
       setLoginStep('loggedIn');
     }
+    setPassword('');
     setInput('');
   };
 
@@ -289,7 +298,7 @@ export default function TerminalScreen() {
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault(); // This is important to prevent page reloads
     const command = input.trim();
 
     if (inMysql) {
@@ -320,7 +329,7 @@ export default function TerminalScreen() {
     setCommandHistory(prev => [command, ...prev]);
     setHistoryIndex(-1);
 
-    const commandLine = `${promptSymbol} ${command}`;
+    const commandLine = `<span class="terminal-prompt-old">${promptSymbol}</span> ${command}`;
 
     if (command.startsWith('hello')) {
       setLines([
@@ -598,7 +607,20 @@ export default function TerminalScreen() {
     setInput('');
   };
 
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (keyRepeatTimeoutRef.current) {
+      clearTimeout(keyRepeatTimeoutRef.current);
+      keyRepeatTimeoutRef.current = null;
+    }
+    if (keyRepeatIntervalRef.current) {
+      clearInterval(keyRepeatIntervalRef.current);
+      keyRepeatIntervalRef.current = null;
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.repeat) return; // Let the browser handle normal character repeat
+
     if (e.key === 'Tab') {
       e.preventDefault();
       if (loginStep !== 'loggedIn' || !fs) return;
@@ -648,22 +670,38 @@ export default function TerminalScreen() {
       return;
     }
     if (e.key === 'ArrowUp') {
+      const navigateHistory = () => {
+        if (historyIndex < commandHistory.length - 1) {
+          const newHistoryIndex = historyIndex + 1;
+          setHistoryIndex(newHistoryIndex);
+          setInput(commandHistory[newHistoryIndex]);
+        }
+      };
       e.preventDefault();
-      if (historyIndex < commandHistory.length - 1) {
-        const newHistoryIndex = historyIndex + 1;
-        setHistoryIndex(newHistoryIndex);
-        setInput(commandHistory[newHistoryIndex]);
-      }
+      navigateHistory();
+      keyRepeatTimeoutRef.current = setTimeout(() => {
+        keyRepeatIntervalRef.current = setInterval(navigateHistory, 50);
+      }, 500);
     } else if (e.key === 'ArrowDown') {
+      const navigateHistory = () => {
+        if (historyIndex > 0) {
+          const newHistoryIndex = historyIndex - 1;
+          setHistoryIndex(newHistoryIndex);
+          setInput(commandHistory[newHistoryIndex]);
+        } else if (historyIndex <= 0) {
+          setHistoryIndex(-1);
+          setInput('');
+        }
+      };
       e.preventDefault();
-      if (historyIndex > 0) {
-        const newHistoryIndex = historyIndex - 1;
-        setHistoryIndex(newHistoryIndex);
-        setInput(commandHistory[newHistoryIndex]);
-      } else if (historyIndex <= 0) {
-        setHistoryIndex(-1);
-        setInput('');
-      }
+      navigateHistory();
+      keyRepeatTimeoutRef.current = setTimeout(() => {
+        keyRepeatIntervalRef.current = setInterval(navigateHistory, 50);
+      }, 500);
+    } else {
+      // For any other key, clear the repeat timers
+      // as we only want this for arrow keys for now.
+      handleKeyUp(e);
     }
   };
 
@@ -682,10 +720,11 @@ export default function TerminalScreen() {
                 ref={inputRef}
                 disabled={isLlmStreaming}
                 className="terminal-input"
-                value={input}
+              value={loginStep === 'password' ? '*'.repeat(password.length) : input}
                 onChange={handleInput}
                 onKeyDown={handleKeyDown}
-                type={loginStep === 'password' ? 'password' : 'text'}
+                onKeyUp={handleKeyUp}
+              type="text"
                 autoFocus
               />
               <button type="submit" style={{ display: 'none' }} />

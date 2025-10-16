@@ -36,3 +36,6 @@
 .terminal-prompt {
   color: #00ff00;
 }
+.terminal-prompt-old {
+  color: #008000; /* Dark Green */
+}
