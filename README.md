@@ -65,17 +65,17 @@ Typing `help` into the AISSH console, will give you the implemented commands. I 
 1. This hash is then used generate a persona with:
   - 3-5 traits from a list of 30
   - 1-2 favourite foods from a list of 20
-  - 1 colour from a list of 10
+  - 1 favourite colour from a list of 10
   - 1 job from a list of 30
-  - 1 animal from a list of 30
-  - an age between 18 and 90
+  - 1 favourite animal from a list of 30
+  - their age between 18 and 90
   - 1 adjective describing childhood from a list of 10
 1. The generated persona can be seen with the `id` command
 1. This persona is then used when creating the file-list in a given folder (filenames) when using `ls`, as well as the contents of file when using `cat`
 
 The combination of the LLM running at temp=0, and the deterministic nature of the persona creation ensures a repeatable experience for each username/password combination
 
-Identifying whether the data is a real filesystem is made harder as the persona-approach ensures there is a common theme across filenames and file content.
+Identifying whether the data is a real filesystem is made harder as the persona-approach ensures there is a common theme across filenames and file content
 
 ## Contact
 
