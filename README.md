@@ -20,6 +20,21 @@ http://decentapps.net/aissh
 
 The first time AISSH is run, AISSH will download and embed a Llama-3.1-8B model in the browser. Subsequent runs will use the cached LLM and so load much faster.
 
+## Features
+
+- `ls` and `cd` commands for filesystem navigation using relative and absolute paths. Bash completion even works!
+
+<img width="1935" height="1040" alt="image" src="https://github.com/user-attachments/assets/d08dae95-754d-4535-9910-4d044937c6bd" />
+
+- `cat` command is overloaded, and will generate realistic file contents for any filename and extension
+
+<img width="1326" height="1089" alt="image" src="https://github.com/user-attachments/assets/64937c47-38c9-4503-b725-f8b556eca42b" />
+
+- `cat` is overloaded too so here's the contents of an image file
+
+<img width="2523" height="1117" alt="image" src="https://github.com/user-attachments/assets/06c72521-9c83-4523-a33e-2c7fd80776b1" />
+
+
 ## Commands
 
 Typing `help` into the AISSH console, will give you the implemented commands. I have implemented some of the core bash functionality, as well as some helper commands to understand what's going on under the hood:
